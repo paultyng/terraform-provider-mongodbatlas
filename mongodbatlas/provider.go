@@ -57,6 +57,8 @@ func Provider() *schema.Provider {
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
+			"mongodbatlas_advanced_cluster":                      dataSourceMongoDBAtlasAdvancedCluster(),
+			"mongodbatlas_advanced_clusters":                     dataSourceMongoDBAtlasAdvancedClusters(),
 			"mongodbatlas_custom_db_role":                        dataSourceMongoDBAtlasCustomDBRole(),
 			"mongodbatlas_custom_db_roles":                       dataSourceMongoDBAtlasCustomDBRoles(),
 			"mongodbatlas_database_user":                         dataSourceMongoDBAtlasDatabaseUser(),
@@ -103,6 +105,7 @@ func Provider() *schema.Provider {
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
+			"mongodbatlas_advanced_cluster":                      resourceMongoDBAtlasAdvancedCluster(),
 			"mongodbatlas_custom_db_role":                        resourceMongoDBAtlasCustomDBRole(),
 			"mongodbatlas_database_user":                         resourceMongoDBAtlasDatabaseUser(),
 			"mongodbatlas_project":                               resourceMongoDBAtlasProject(),
