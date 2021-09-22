@@ -143,7 +143,7 @@ func testAccCheckMongoDBAtlasGlobalClusterImportStateIDFunc(resourceName string)
 func testAccCheckMongoDBAtlasGlobalClusterAttributes(globalCluster *matlas.GlobalCluster, managedNamespacesCount int) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if len(globalCluster.ManagedNamespaces) != managedNamespacesCount {
-			return fmt.Errorf("bad managed namespaces: %s", globalCluster.ManagedNamespaces)
+			return fmt.Errorf("bad managed namespaces: %v", globalCluster.ManagedNamespaces)
 		}
 
 		return nil
