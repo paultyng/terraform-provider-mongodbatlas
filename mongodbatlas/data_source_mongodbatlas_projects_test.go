@@ -16,6 +16,7 @@ func TestAccDataSourceMongoDBAtlasProjects_basic(t *testing.T) {
 	projectName := fmt.Sprintf("test-datasource-project-%s", acctest.RandString(10))
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	teamsIds := strings.Split(os.Getenv("MONGODB_ATLAS_TEAMS_IDS"), ",")
+	apiKeysIds := strings.Split(os.Getenv("MONGODB_ATLAS_API_KEYS_IDS"), ",")
 	if len(teamsIds) < 2 {
 		t.Skip("`MONGODB_ATLAS_TEAMS_IDS` must have 2 team ids for this acceptance testing")
 	}
@@ -36,6 +37,16 @@ func TestAccDataSourceMongoDBAtlasProjects_basic(t *testing.T) {
 							RoleNames: []string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
 						},
 					},
+					[]*apiKey{
+						{
+							id:    apiKeysIds[0],
+							roles: []string{"GROUP_READ_ONLY"},
+						},
+						{
+							id:    apiKeysIds[1],
+							roles: []string{"GROUP_OWNER"},
+						},
+					},
 				),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "name"),
@@ -50,6 +61,7 @@ func TestAccDataSourceMongoDBAtlasProjects_withPagination(t *testing.T) {
 	projectName := fmt.Sprintf("test-datasource-project-%s", acctest.RandString(10))
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	teamsIds := strings.Split(os.Getenv("MONGODB_ATLAS_TEAMS_IDS"), ",")
+	apiKeysIds := strings.Split(os.Getenv("MONGODB_ATLAS_API_KEYS_IDS"), ",")
 	if len(teamsIds) < 2 {
 		t.Skip("`MONGODB_ATLAS_TEAMS_IDS` must have 2 team ids for this acceptance testing")
 	}
@@ -70,6 +82,16 @@ func TestAccDataSourceMongoDBAtlasProjects_withPagination(t *testing.T) {
 							RoleNames: []string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
 						},
 					},
+					[]*apiKey{
+						{
+							id:    apiKeysIds[0],
+							roles: []string{"GROUP_READ_ONLY"},
+						},
+						{
+							id:    apiKeysIds[1],
+							roles: []string{"GROUP_OWNER"},
+						},
+					},
 					2, 5,
 				),
 				Check: resource.ComposeTestCheckFunc(
@@ -81,21 +103,21 @@ func TestAccDataSourceMongoDBAtlasProjects_withPagination(t *testing.T) {
 	})
 }
 
-func testAccMongoDBAtlasProjectsConfigWithDS(projectName, orgID string, teams []*matlas.ProjectTeam) string {
+func testAccMongoDBAtlasProjectsConfigWithDS(projectName, orgID string, teams []*matlas.ProjectTeam, apiKeys []*apiKey) string {
 	config := fmt.Sprintf(`
 		%s
 		data "mongodbatlas_projects" "test" {}
-	`, testAccMongoDBAtlasProjectConfig(projectName, orgID, teams))
+	`, testAccMongoDBAtlasProjectConfig(projectName, orgID, teams, apiKeys))
 	log.Printf("[DEBUG] config: %s", config)
 	return config
 }
 
-func testAccMongoDBAtlasProjectsConfigWithPagination(projectName, orgID string, teams []*matlas.ProjectTeam, pageNum, itemPage int) string {
+func testAccMongoDBAtlasProjectsConfigWithPagination(projectName, orgID string, teams []*matlas.ProjectTeam, apiKeys []*apiKey, pageNum, itemPage int) string {
 	return fmt.Sprintf(`
 		%s
 		data "mongodbatlas_projects" "test" {
 			page_num = %d
 			items_per_page = %d
 		}
-	`, testAccMongoDBAtlasProjectConfig(projectName, orgID, teams), pageNum, itemPage)
+	`, testAccMongoDBAtlasProjectConfig(projectName, orgID, teams, apiKeys), pageNum, itemPage)
 }

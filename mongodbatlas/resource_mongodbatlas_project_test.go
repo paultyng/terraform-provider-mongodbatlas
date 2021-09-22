@@ -22,9 +22,13 @@ func TestAccResourceMongoDBAtlasProject_basic(t *testing.T) {
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		clusterCount = "0"
 		teamsIds     = strings.Split(os.Getenv("MONGODB_ATLAS_TEAMS_IDS"), ",")
+		apiKeysIds   = strings.Split(os.Getenv("MONGODB_ATLAS_API_KEYS_IDS"), ",")
 	)
 	if len(teamsIds) < 3 {
 		t.Skip("`MONGODB_ATLAS_TEAMS_IDS` must have 3 team ids for this acceptance testing")
+	}
+	if len(apiKeysIds) < 2 {
+		t.Fatal("`MONGODB_ATLAS_API_KEYS_IDS` must have 2 api key ids for this acceptance testing")
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -42,6 +46,16 @@ func TestAccResourceMongoDBAtlasProject_basic(t *testing.T) {
 						{
 							TeamID:    teamsIds[1],
 							RoleNames: []string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
+						},
+					},
+					[]*apiKey{
+						{
+							id:    apiKeysIds[0],
+							roles: []string{"GROUP_READ_ONLY"},
+						},
+						{
+							id:    apiKeysIds[1],
+							roles: []string{"GROUP_OWNER"},
 						},
 					},
 				),
@@ -70,6 +84,16 @@ func TestAccResourceMongoDBAtlasProject_basic(t *testing.T) {
 							RoleNames: []string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
 						},
 					},
+					[]*apiKey{
+						{
+							id:    apiKeysIds[0],
+							roles: []string{"GROUP_READ_ONLY"},
+						},
+						{
+							id:    apiKeysIds[1],
+							roles: []string{"GROUP_OWNER"},
+						},
+					},
 				),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasProjectExists(resourceName, &project),
@@ -92,6 +116,16 @@ func TestAccResourceMongoDBAtlasProject_basic(t *testing.T) {
 							RoleNames: []string{"GROUP_OWNER", "GROUP_DATA_ACCESS_ADMIN"},
 						},
 					},
+					[]*apiKey{
+						{
+							id:    apiKeysIds[0],
+							roles: []string{"GROUP_READ_ONLY"},
+						},
+						{
+							id:    apiKeysIds[1],
+							roles: []string{"GROUP_OWNER"},
+						},
+					},
 				),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasProjectExists(resourceName, &project),
@@ -102,7 +136,7 @@ func TestAccResourceMongoDBAtlasProject_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasProjectConfig(projectName, orgID, []*matlas.ProjectTeam{}),
+				Config: testAccMongoDBAtlasProjectConfig(projectName, orgID, []*matlas.ProjectTeam{}, []*apiKey{}),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasProjectExists(resourceName, &project),
 					testAccCheckMongoDBAtlasProjectAttributes(&project, projectName),
@@ -166,6 +200,7 @@ func TestAccResourceMongoDBAtlasProject_importBasic(t *testing.T) {
 			{
 				Config: testAccMongoDBAtlasProjectConfig(projectName, orgID,
 					[]*matlas.ProjectTeam{},
+					[]*apiKey{},
 				),
 			},
 			{
@@ -240,7 +275,7 @@ func testAccCheckMongoDBAtlasProjectImportStateIDFunc(resourceName string) resou
 	}
 }
 
-func testAccMongoDBAtlasProjectConfig(projectName, orgID string, teams []*matlas.ProjectTeam) string {
+func testAccMongoDBAtlasProjectConfig(projectName, orgID string, teams []*matlas.ProjectTeam, apiKeys []*apiKey) string {
 	var ts string
 
 	for _, t := range teams {
@@ -250,6 +285,15 @@ func testAccMongoDBAtlasProjectConfig(projectName, orgID string, teams []*matlas
 			role_names = %s
 		}
 		`, t.TeamID, strings.ReplaceAll(fmt.Sprintf("%+q", t.RoleNames), " ", ","))
+	}
+
+	for _, apiKey := range apiKeys {
+		ts += fmt.Sprintf(`
+		api_keys {
+			api_key_id = "%s"
+			role_names = %s
+		}
+		`, apiKey.id, strings.ReplaceAll(fmt.Sprintf("%+q", apiKey.roles), " ", ","))
 	}
 
 	return fmt.Sprintf(`

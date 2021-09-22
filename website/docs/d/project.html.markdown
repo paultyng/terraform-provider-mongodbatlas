@@ -51,6 +51,10 @@ resource "mongodbatlas_project" "test" {
     team_id    = "5e1dd7b4f2a30ba80a70cd4rw"
     role_names = ["GROUP_READ_ONLY", "GROUP_DATA_ACCESS_READ_WRITE"]
   }
+  api_keys {
+    api_key_id = "61003b299dda8d54a9d7d10c"
+    role_names = ["GROUP_READ_ONLY"]
+  }
 }
 
 data "mongodbatlas_project" "test" {
@@ -82,6 +86,14 @@ The following are valid roles:
   * `GROUP_DATA_ACCESS_READ_WRITE`
   * `GROUP_DATA_ACCESS_READ_ONLY`
   * `GROUP_CLUSTER_MANAGER`
-
+* `api_keys.#.api_key_id` - The unique identifier of the api key you want to associate with the project. The api key and project must share the same parent organization.
+* `api_keys.#.role_names` - Each string in the array represents a project role assigned to the api key.
+The following are valid roles:
+  * `GROUP_OWNER`
+  * `GROUP_READ_ONLY`
+  * `GROUP_DATA_ACCESS_ADMIN`
+  * `GROUP_DATA_ACCESS_READ_WRITE`
+  * `GROUP_DATA_ACCESS_READ_ONLY`
+  * `GROUP_CLUSTER_MANAGER`
 
 See [MongoDB Atlas API - Project](https://docs.atlas.mongodb.com/reference/api/project-get-one/) - [and MongoDB Atlas API - Teams](https://docs.atlas.mongodb.com/reference/api/project-get-teams/) Documentation for more information.

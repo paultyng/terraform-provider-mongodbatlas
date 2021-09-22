@@ -124,6 +124,7 @@ $ export MONGODB_ATLAS_DB_USERNAME=<YOUR_DATABASE_NAME>
 - For `Project(s)` resource configuration:
 ```sh
 $ export MONGODB_ATLAS_TEAMS_IDS=<YOUR_TEAMS_IDS>
+$ export MONGODB_ATLAS_API_KEYS_IDS=<API_KEYS_IDS>
 ```
 ~> **Notice:** It should be at least one team id up to 3 teams ids depending of acceptance testing using separator comma like this `teamId1,teamdId2,teamId3`.
 

@@ -28,6 +28,11 @@ resource "mongodbatlas_project" "test" {
     team_id    = "5e1dd7b4f2a30ba80a70cd4rw"
     role_names = ["GROUP_READ_ONLY", "GROUP_DATA_ACCESS_READ_WRITE"]
   }
+
+  api_keys {
+    api_key_id = "61003b299dda8d54a9d7d10c"
+    role_names = ["GROUP_READ_ONLY"]
+  }
 }
 ```
 
@@ -54,6 +59,22 @@ Teams attribute is optional
 
 
 ~> **NOTE:** Project created by API Keys must belong to an existing organization.
+
+### Api Keys
+api_keys attribute is optional
+
+~> **NOTE:** Atlas limits the number of api keys to a maximum of 500 api keys per organization.
+
+* `api_key_id` - (Required) The unique identifier of the api key you want to associate with the project.
+
+* `role_names` - (Required) Each string in the array represents a project role you want to assign to the api key. You must specify an array even if you are only associating a single role with the api key.
+ The following are valid roles:
+  * `GROUP_OWNER`
+  * `GROUP_READ_ONLY`
+  * `GROUP_DATA_ACCESS_ADMIN`
+  * `GROUP_DATA_ACCESS_READ_WRITE`
+  * `GROUP_DATA_ACCESS_READ_ONLY`
+  * `GROUP_CLUSTER_MANAGER`
 
 ## Attributes Reference
 

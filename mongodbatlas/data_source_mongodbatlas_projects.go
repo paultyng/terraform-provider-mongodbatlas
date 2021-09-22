@@ -67,6 +67,25 @@ func dataSourceMongoDBAtlasProjects() *schema.Resource {
 								},
 							},
 						},
+						"api_keys": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"api_key_id": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"role_names": {
+										Type:     schema.TypeList,
+										Computed: true,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -116,6 +135,10 @@ func flattenProjects(ctx context.Context, conn *matlas.Client, projects []*matla
 				fmt.Printf("[WARN] error getting project's teams assigned (%s): %s", project.ID, err)
 			}
 
+			apiKeys, err := getProjectApiKeys(conn, ctx, project.OrgID, project.ID)
+			if err != nil {
+				fmt.Printf("[WARN] error getting project's api keys (%s): %s", project.ID, err)
+			}
 			results[k] = map[string]interface{}{
 				"id":            project.ID,
 				"org_id":        project.OrgID,
@@ -123,6 +146,7 @@ func flattenProjects(ctx context.Context, conn *matlas.Client, projects []*matla
 				"cluster_count": project.ClusterCount,
 				"created":       project.Created,
 				"teams":         flattenTeams(teams),
+				"api_keys":      flattenAPIKeys(apiKeys),
 			}
 		}
 	}
