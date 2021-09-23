@@ -14,7 +14,7 @@ description: |-
 
 ## Example Usage
 
-### Example Tentant Cluster
+### Example Tenant Cluster
 
 ```terraform
 resource "mongodbatlas_advanced_cluster" "test" {
@@ -73,7 +73,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project to create the database user.
+* `project_id` - (Required) Unique ID for the project to create the database user.
 * `name` - (Required) Name of the cluster as it appears in Atlas. Once the cluster is created, its name cannot be changed.
 * `cluster_type` - (Required) Atlas provides different instance sizes, each with a default storage capacity and RAM size. The instance size you select is used for all the data-bearing servers in your cluster. See [Create a Cluster](https://docs.atlas.mongodb.com/reference/api/clusters-create-one/) `providerSettings.instanceSizeName` for valid values and default resources. 
 
