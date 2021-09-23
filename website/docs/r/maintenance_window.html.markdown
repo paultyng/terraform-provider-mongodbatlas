@@ -46,7 +46,8 @@ Once maintenance is scheduled for your cluster, you cannot change your maintenan
 * `start_asap` - Flag indicating whether project maintenance has been directed to start immediately. If you request that maintenance begin immediately, this field returns true from the time the request was made until the time the maintenance event completes.
 * `number_of_deferrals` - Number of times the current maintenance event for this project has been deferred, you can set a maximum of 2 deferrals.
 * `defer` - Defer maintenance for the given project for one week.
-* `auto_defer` - Automatically defer any maintenance for the given project for one week.
+* `auto_defer` - Automatically defers any maintenance for the given project for one week when a maintenance event is available.
+* `auto_defer_once_enabled` - Flag that indicates whether you want to defer all maintenance windows one week they would be triggered.
 
 -> **NOTE:** The `start_asap` attribute can't be used because of breaks the Terraform flow, but you can enable via API.
 

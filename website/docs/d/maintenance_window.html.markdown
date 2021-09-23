@@ -19,6 +19,7 @@ resource "mongodbatlas_maintenance_window" "test" {
   project_id  = "<your-project-id>"
   day_of_week = 3
   hour_of_day = 4
+  auto_defer_once_enabled = true
 }
 
 data "mongodbatlas_maintenance_window" "test" {
@@ -50,5 +51,5 @@ In addition to all arguments above, the following attributes are exported:
 * `hour_of_day` - Hour of the day when you would like the maintenance window to start. This parameter uses the 24-hour clock, where midnight is 0, noon is 12  (Time zone is UTC).
 * `start_asap` - Flag indicating whether project maintenance has been directed to start immediately. If you request that maintenance begin immediately, this field returns true from the time the request was made until the time the maintenance event completes.
 * `number_of_deferrals` - Number of times the current maintenance event for this project has been deferred, you can set a maximum of 2 deferrals.
-
+* `auto_defer_once_enabled` - Flag that indicates whether you want to defer all maintenance windows one week they would be triggered.
 For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/maintenance-windows/)

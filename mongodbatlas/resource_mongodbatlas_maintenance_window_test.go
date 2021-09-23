@@ -104,6 +104,50 @@ func TestAccResourceMongoDBAtlasMaintenanceWindow_importBasic(t *testing.T) {
 	})
 }
 
+func TestAccResourceMongoDBAtlasMaintenanceWindow_autoDeferActivated(t *testing.T) {
+	var (
+		maintenance  matlas.MaintenanceWindow
+		resourceName = "mongodbatlas_maintenance_window.test"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		dayOfWeek    = 7
+		hourOfDay    = 3
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasMaintenanceWindowDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasMaintenanceWindowConfigAutoDeferEnabled(projectID, dayOfWeek, hourOfDay),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasMaintenanceWindowExists(resourceName, &maintenance),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "day_of_week"),
+					resource.TestCheckResourceAttrSet(resourceName, "hour_of_day"),
+
+					resource.TestCheckResourceAttr(resourceName, "day_of_week", cast.ToString(dayOfWeek)),
+					resource.TestCheckResourceAttr(resourceName, "hour_of_day", cast.ToString(hourOfDay)),
+					resource.TestCheckResourceAttr(resourceName, "number_of_deferrals", "0"),
+					resource.TestCheckResourceAttr(resourceName, "auto_defer_once_enabled", "true"),
+
+					testAccCheckMongoDBAtlasMaintenanceWindowAttributes("day_of_week", dayOfWeek, &maintenance.DayOfWeek),
+				),
+			},
+		},
+	})
+}
+
+func testAccMongoDBAtlasMaintenanceWindowConfigAutoDeferEnabled(projectID string, dayOfWeek, hourOfDay int) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_maintenance_window" "test" {
+			project_id  = "%s"
+			day_of_week = %d
+			hour_of_day = %d
+			auto_defer_once_enabled = true
+		}`, projectID, dayOfWeek, hourOfDay)
+}
+
 func testAccCheckMongoDBAtlasMaintenanceWindowExists(resourceName string, maintenance *matlas.MaintenanceWindow) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := testAccProvider.Meta().(*MongoDBClient).Atlas

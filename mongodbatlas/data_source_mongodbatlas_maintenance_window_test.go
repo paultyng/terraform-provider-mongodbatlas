@@ -27,6 +27,7 @@ func TestAccDataSourceMongoDBAtlasMaintenanceWindow_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet("data.mongodbatlas_maintenance_window.test", "project_id"),
 					resource.TestCheckResourceAttrSet("data.mongodbatlas_maintenance_window.test", "day_of_week"),
 					resource.TestCheckResourceAttrSet("data.mongodbatlas_maintenance_window.test", "hour_of_day"),
+					resource.TestCheckResourceAttrSet("data.mongodbatlas_maintenance_window.test", "auto_defer_once_enabled"),
 				),
 			},
 		},
@@ -39,6 +40,7 @@ func testAccMongoDBAtlasDataSourceMaintenanceWindowConfig(projectID string, dayO
 			project_id  = "%s"
 			day_of_week = %d
 			hour_of_day = %d
+			auto_defer_once_enabled = true
 		}
 
 		data "mongodbatlas_maintenance_window" "test" {

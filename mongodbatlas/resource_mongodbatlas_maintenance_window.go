@@ -79,6 +79,11 @@ func resourceMongoDBAtlasMaintenanceWindow() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
+			"auto_defer_once_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -117,6 +122,10 @@ func resourceMongoDBAtlasMaintenanceWindowCreate(ctx context.Context, d *schema.
 		maintenanceWindowReq.NumberOfDeferrals = cast.ToInt(numberOfDeferrals)
 	}
 
+	if autoDeferOnceEnabled, ok := d.GetOk("auto_defer_once_enabled"); ok {
+		maintenanceWindowReq.AutoDeferOnceEnabled = pointy.Bool(autoDeferOnceEnabled.(bool))
+	}
+
 	_, err := conn.MaintenanceWindows.Update(ctx, projectID, maintenanceWindowReq)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorMaintenanceCreate, projectID, err))
@@ -153,10 +162,16 @@ func resourceMongoDBAtlasMaintenanceWindowRead(ctx context.Context, d *schema.Re
 		return diag.FromErr(fmt.Errorf(errorMaintenanceRead, d.Id(), err))
 	}
 	// start_asap is just display the state of the maintenance,
-	// and it doesn't able to set it because breacks the Terraform flow
+	// and it doesn't able to set it because breaks the Terraform flow
 	// it can be used via API
 	if err := d.Set("start_asap", maintenanceWindow.StartASAP); err != nil {
 		return diag.FromErr(fmt.Errorf(errorMaintenanceRead, d.Id(), err))
+	}
+
+	if maintenanceWindow.AutoDeferOnceEnabled != nil {
+		if err := d.Set("auto_defer_once_enabled", *maintenanceWindow.AutoDeferOnceEnabled); err != nil {
+			return diag.Errorf(errorMaintenanceRead, d.Id(), err)
+		}
 	}
 
 	if err := d.Set("project_id", d.Id()); err != nil {
@@ -196,6 +211,10 @@ func resourceMongoDBAtlasMaintenanceWindowUpdate(ctx context.Context, d *schema.
 
 	if d.HasChange("number_of_deferrals") {
 		maintenanceWindowReq.NumberOfDeferrals = cast.ToInt(d.Get("number_of_deferrals"))
+	}
+
+	if d.HasChange("auto_defer_once_enabled") {
+		maintenanceWindowReq.AutoDeferOnceEnabled = pointy.Bool(d.Get("number_of_deferrals").(bool))
 	}
 
 	_, err := conn.MaintenanceWindows.Update(ctx, d.Id(), maintenanceWindowReq)

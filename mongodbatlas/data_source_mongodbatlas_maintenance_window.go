@@ -2,7 +2,6 @@ package mongodbatlas
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -33,6 +32,10 @@ func dataSourceMongoDBAtlasMaintenanceWindow() *schema.Resource {
 				Type:     schema.TypeInt,
 				Computed: true,
 			},
+			"auto_defer_once_enabled": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -44,23 +47,27 @@ func dataSourceMongoDBAtlasMaintenanceWindowRead(ctx context.Context, d *schema.
 
 	maintenance, _, err := conn.MaintenanceWindows.Get(ctx, projectID)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorMaintenanceRead, projectID, err))
+		return diag.Errorf(errorMaintenanceRead, projectID, err)
 	}
 
 	if err := d.Set("day_of_week", maintenance.DayOfWeek); err != nil {
-		return diag.FromErr(fmt.Errorf(errorMaintenanceRead, projectID, err))
+		return diag.Errorf(errorMaintenanceRead, projectID, err)
 	}
 
 	if err := d.Set("hour_of_day", maintenance.HourOfDay); err != nil {
-		return diag.FromErr(fmt.Errorf(errorMaintenanceRead, projectID, err))
+		return diag.Errorf(errorMaintenanceRead, projectID, err)
 	}
 
 	if err := d.Set("number_of_deferrals", maintenance.NumberOfDeferrals); err != nil {
-		return diag.FromErr(fmt.Errorf(errorMaintenanceRead, projectID, err))
+		return diag.Errorf(errorMaintenanceRead, projectID, err)
 	}
 
 	if err := d.Set("start_asap", cast.ToBool(maintenance.StartASAP)); err != nil {
-		return diag.FromErr(fmt.Errorf(errorMaintenanceRead, projectID, err))
+		return diag.Errorf(errorMaintenanceRead, projectID, err)
+	}
+
+	if err := d.Set("auto_defer_once_enabled", cast.ToBool(maintenance.AutoDeferOnceEnabled)); err != nil {
+		return diag.Errorf(errorMaintenanceRead, projectID, err)
 	}
 
 	d.SetId(projectID)
