@@ -24,9 +24,12 @@ See [Encryption at Rest](https://docs.atlas.mongodb.com/security-kms-encryption/
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
+
+-> **IMPORTANT NOTE** To disable the encryption at rest with customer key management for a project all existing clusters in the project must first either have encryption at rest for the provider set to none, e.g. `encryption_at_rest_provider = "NONE"`, or be deleted.
+
 ## Example Usage
 
-```hcl
+```terraform
 resource "mongodbatlas_encryption_at_rest" "test" {
   project_id = "<PROJECT-ID>"
 
@@ -59,10 +62,52 @@ resource "mongodbatlas_encryption_at_rest" "test" {
 
 **NOTE**  if using the two resources path for cloud provider access, `cloud_provider_access_setup` and `cloud_provider_access_authorization`, you may need to define a `depends_on` statement for these two resources, because terraform is not able to infer the dependency.
 
-```hcl
+```terraform
 resource "mongodbatlas_encryption_at_rest" "default" {
   (...)
   depends_on = [mongodbatlas_cloud_provider_access_setup.<resource_name>, mongodbatlas_cloud_provider_access_authorization.<resource_name>]
+}
+```
+
+## Example: Configuring encryption at rest using customer key management in Azure and then creating a cluster
+
+The configuration of encryption at rest with customer key management, `mongodbatlas_encryption_at_rest`, needs to be completed before a cluster is created in the project. Force this wait by using an implicit dependency via `project_id` as shown in the example below.
+
+```terraform
+resource "mongodbatlas_encryption_at_rest" "example" {
+  project_id = "<PROJECT-ID>"
+
+  azure_key_vault_config {
+    enabled             = true
+    client_id           = "g54f9e2-89e3-40fd-8188-EXAMPLEID"
+    azure_environment   = "AZURE"
+    subscription_id     = "0ec944e3-g725-44f9-a147-EXAMPLEID"
+    resource_group_name = "ExampleRGName"
+    key_vault_name      = "EXAMPLEKeyVault"
+    key_identifier      = "https://EXAMPLEKeyVault.vault.azure.net/keys/EXAMPLEKey/d891821e3d364e9eb88fbd3d11807b86"
+    secret              = "EXAMPLESECRET"
+    tenant_id           = "e8e4b6ba-ff32-4c88-a9af-EXAMPLEID"
+  }
+}
+
+resource "mongodbatlas_cluster" "example_cluster" {
+  project_id   = mongodbatlas_encryption_at_rest.example.project_id
+  name         = "CLUSTER NAME"
+  cluster_type = "REPLICASET"
+  replication_specs {
+    num_shards = 1
+    regions_config {
+      region_name     = "REGION"
+      electable_nodes = 3
+      priority        = 7
+      read_only_nodes = 0
+    }
+  }
+
+  provider_name               = "AZURE"
+  provider_instance_size_name = "M10"
+  mongo_db_major_version      = "4.4"
+  encryption_at_rest_provider = "AZURE"
 }
 ```
 
