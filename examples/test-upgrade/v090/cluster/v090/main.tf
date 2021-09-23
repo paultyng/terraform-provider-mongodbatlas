@@ -14,7 +14,7 @@ resource "mongodbatlas_cluster" "test" {
   auto_scaling_disk_gb_enabled = true
   mongo_db_major_version       = var.mongodb_major_version
 
-  // Provider Settings "block"
+  # Provider Settings "block"
   provider_name               = "AWS"
   provider_disk_iops          = 300
   provider_instance_size_name = "M30"

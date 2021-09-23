@@ -1,4 +1,4 @@
-// This will Create a Project,  Cluster and Modify the 4 Default Policies Simultaneously
+# This will Create a Project,  Cluster and Modify the 4 Default Policies Simultaneously
 
 resource "mongodbatlas_project" "project_test" {
   name   = var.project_name
@@ -10,11 +10,11 @@ resource "mongodbatlas_cluster" "cluster_test" {
   name         = var.cluster_name
   disk_size_gb = 5
 
-  // Provider Settings "block"
+  # Provider Settings "block"
   provider_name               = "AWS"
   provider_region_name        = "EU_CENTRAL_1"
   provider_instance_size_name = "M10"
-  provider_backup_enabled     = true //enable cloud provider snapshots
+  provider_backup_enabled     = true # enable cloud provider snapshots
 }
 
 resource "mongodbatlas_cloud_provider_snapshot_backup_policy" "test" {
@@ -27,31 +27,31 @@ resource "mongodbatlas_cloud_provider_snapshot_backup_policy" "test" {
 
 
   policies {
-    id = mongodbatlas_cluster.cluster_test.snapshot_backup_policy.0.policies.0.id
+    id = mongodbatlas_cluster.cluster_test.snapshot_backup_policy[0].policies[0].id
 
     policy_item {
-      id                 = mongodbatlas_cluster.cluster_test.snapshot_backup_policy.0.policies.0.policy_item.0.id
+      id                 = mongodbatlas_cluster.cluster_test.snapshot_backup_policy[0].policies[0].policy_item[0].id
       frequency_interval = 1
       frequency_type     = "hourly"
       retention_unit     = "days"
       retention_value    = 1
     }
     policy_item {
-      id                 = mongodbatlas_cluster.cluster_test.snapshot_backup_policy.0.policies.0.policy_item.1.id
+      id                 = mongodbatlas_cluster.cluster_test.snapshot_backup_policy[0].policies[0].policy_item[1].id
       frequency_interval = 1
       frequency_type     = "daily"
       retention_unit     = "days"
       retention_value    = 2
     }
     policy_item {
-      id                 = mongodbatlas_cluster.cluster_test.snapshot_backup_policy.0.policies.0.policy_item.2.id
+      id                 = mongodbatlas_cluster.cluster_test.snapshot_backup_policy[0].policies[0].policy_item[2].id
       frequency_interval = 4
       frequency_type     = "weekly"
       retention_unit     = "weeks"
       retention_value    = 3
     }
     policy_item {
-      id                 = mongodbatlas_cluster.cluster_test.snapshot_backup_policy.0.policies.0.policy_item.3.id
+      id                 = mongodbatlas_cluster.cluster_test.snapshot_backup_policy[0].policies[0].policy_item[3].id
       frequency_interval = 5
       frequency_type     = "monthly"
       retention_unit     = "months"

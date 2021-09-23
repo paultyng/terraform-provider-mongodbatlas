@@ -1,4 +1,4 @@
-// mongo 
+# mongo
 variable "project_id" {
   type = string
 }
@@ -13,7 +13,7 @@ variable "private_key" {
   type = string
 }
 
-// aws
+# aws
 variable "access_key" {
   type = string
 }

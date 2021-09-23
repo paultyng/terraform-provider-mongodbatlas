@@ -1,4 +1,4 @@
-//DATABASE USER
+# DATABASE USER
 resource "mongodbatlas_database_user" "user1" {
   username           = var.user[0]
   password           = var.password[0]
@@ -22,7 +22,7 @@ resource "mongodbatlas_database_user" "user1" {
 output "user1" {
   value = mongodbatlas_database_user.user1.username
 }
-//DATA LAKE USER
+# DATA LAKE USER
 resource "mongodbatlas_database_user" "user2" {
   username           = var.user[1]
   password           = var.password[1]

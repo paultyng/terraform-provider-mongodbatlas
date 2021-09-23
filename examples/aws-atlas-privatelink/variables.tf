@@ -21,12 +21,3 @@ variable "aws_region" {
   default     = "us-east-1"
   description = "AWS Region"
 }
-variable "aws_account_id" {
-  description = "My AWS Account ID"
-}
-variable "atlasorgid" {
-  description = "Atlas Org ID"
-}
-variable "atlas_vpc_cidr" {
-  description = "Atlas CIDR"
-}

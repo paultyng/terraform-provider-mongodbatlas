@@ -19,12 +19,10 @@ resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
 }
 
 resource "mongodbatlas_data_lake" "test" {
-  project_id         = mongodbatlas_project.test.id
-  name               = var.data_lake_name
-  aws_role_id        = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
-  aws_test_s3_bucket = var.test_s3_bucket
-  data_process_region = {
-    cloud_provider = "AWS"
-    region         = var.data_lake_region
+  project_id = mongodbatlas_project.test.id
+  name       = var.data_lake_name
+  aws {
+    role_id        = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
+    test_s3_bucket = var.test_s3_bucket
   }
 }

@@ -51,6 +51,6 @@ resource "mongodbatlas_privatelink_endpoint_service" "test" {
   project_id                  = mongodbatlas_privatelink_endpoint.test.project_id
   private_link_id             = mongodbatlas_privatelink_endpoint.test.private_link_id
   endpoint_service_id         = azurerm_private_endpoint.test.id
-  private_endpoint_ip_address = azurerm_private_endpoint.test.private_service_connection.0.private_ip_address
+  private_endpoint_ip_address = azurerm_private_endpoint.test.private_service_connection[0].private_ip_address
   provider_name               = "AZURE"
 }

@@ -29,28 +29,17 @@ resource "mongodbatlas_privatelink_endpoint_service" "test" {
   provider_name       = "AWS"
 }
 
+# tflint-ignore: terraform_unused_declarations
 data "mongodbatlas_privatelink_endpoint" "test" {
   project_id      = data.mongodbatlas_project.test.id
   private_link_id = mongodbatlas_privatelink_endpoint.test.id
   provider_name   = "AWS"
 }
 
+# tflint-ignore: terraform_unused_declarations
 data "mongodbatlas_privatelink_endpoint_service" "test" {
   project_id          = data.mongodbatlas_project.test.id
   private_link_id     = mongodbatlas_privatelink_endpoint_service.test.id
   endpoint_service_id = mongodbatlas_privatelink_endpoint_service.test.endpoint_service_id
   provider_name       = "AWS"
-}
-
-output "privatelink_id_state" {
-  value = mongodbatlas_privatelink_endpoint.test.id
-}
-output "private_link_id" {
-  value = mongodbatlas_privatelink_endpoint.test.private_link_id
-}
-output "privatelink_endpoint_service_state" {
-  value = mongodbatlas_privatelink_endpoint_service.test.id
-}
-output "endpoint_service_id" {
-  value = mongodbatlas_privatelink_endpoint_service.test.endpoint_service_id
 }

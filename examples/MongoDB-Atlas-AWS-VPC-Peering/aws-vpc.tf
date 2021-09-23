@@ -4,19 +4,19 @@ provider "aws" {
   secret_key = var.secret_key
 }
 
-//Create Primary VPC
+# Create Primary VPC
 resource "aws_vpc" "primary" {
   cidr_block           = "10.0.0.0/16"
   enable_dns_hostnames = true
   enable_dns_support   = true
 }
 
-//Create IGW
+# Create IGW
 resource "aws_internet_gateway" "primary" {
   vpc_id = aws_vpc.primary.id
 }
 
-//Route Table
+# Route Table
 resource "aws_route" "primary-internet_access" {
   route_table_id         = aws_vpc.primary.main_route_table_id
   destination_cidr_block = "0.0.0.0/0"
@@ -30,7 +30,7 @@ resource "aws_route" "peeraccess" {
   depends_on                = [aws_vpc_peering_connection_accepter.peer]
 }
 
-//Subnet-A
+# Subnet-A
 resource "aws_subnet" "primary-az1" {
   vpc_id                  = aws_vpc.primary.id
   cidr_block              = "10.0.1.0/24"
@@ -38,7 +38,7 @@ resource "aws_subnet" "primary-az1" {
   availability_zone       = "${var.aws_region}a"
 }
 
-//Subnet-B
+# Subnet-B
 resource "aws_subnet" "primary-az2" {
   vpc_id                  = aws_vpc.primary.id
   cidr_block              = "10.0.2.0/24"

@@ -12,7 +12,7 @@ resource "mongodbatlas_cluster" "cluster" {
       read_only_nodes = 0
     }
   }
-  //Provider Settings "block"
+  # Provider Settings "block"
   provider_backup_enabled      = true
   auto_scaling_disk_gb_enabled = true
   provider_name                = "AWS"

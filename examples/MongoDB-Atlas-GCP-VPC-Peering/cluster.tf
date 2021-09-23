@@ -1,4 +1,4 @@
-//This cluster is in GCP cloud-provider with VPC peering enabled
+# This cluster is in GCP cloud-provider with VPC peering enabled
 
 resource "mongodbatlas_cluster" "cluster" {
   project_id   = var.project_id
@@ -24,7 +24,7 @@ resource "mongodbatlas_cluster" "cluster" {
   auto_scaling_compute_scale_down_enabled = true
 
 
-  //Provider Settings "block"
+  # Provider Settings "block"
   provider_name                                   = "GCP"
   provider_instance_size_name                     = "M10"
   provider_auto_scaling_compute_max_instance_size = "M20"
@@ -39,7 +39,7 @@ resource "mongodbatlas_cluster" "cluster" {
     ]
   }
 }
-//The connection strings available for the GCP MognoDB Atlas cluster
+# The connection strings available for the GCP MognoDB Atlas cluster
 output "connection_string" {
   value = mongodbatlas_cluster.cluster.connection_strings
 }

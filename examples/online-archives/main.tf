@@ -22,12 +22,14 @@ resource "mongodbatlas_online_archive" "users_archive" {
   }
 }
 
+# tflint-ignore: terraform_unused_declarations
 data "mongodbatlas_online_archive" "read_archive" {
   project_id   = mongodbatlas_online_archive.users_archive.project_id
   cluster_name = mongodbatlas_online_archive.users_archive.cluster_name
   archive_id   = mongodbatlas_online_archive.users_archive.archive_id
 }
 
+# tflint-ignore: terraform_unused_declarations
 data "mongodbatlas_online_archives" "all" {
   project_id   = mongodbatlas_online_archive.users_archive.project_id
   cluster_name = mongodbatlas_online_archive.users_archive.cluster_name

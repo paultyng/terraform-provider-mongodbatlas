@@ -14,7 +14,7 @@ resource "mongodbatlas_cluster" "cluster-atlas" {
       read_only_nodes = 0
     }
   }
-  //Provider settings
+  # Provider settings
   provider_name               = "AWS"
   disk_size_gb                = 10
   provider_instance_size_name = "M10"

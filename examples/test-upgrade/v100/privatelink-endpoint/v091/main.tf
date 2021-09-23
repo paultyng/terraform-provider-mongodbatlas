@@ -1,6 +1,6 @@
-// This config will create aws endpoint, private endpoint and private endpoint interface
-// To verify that everything is working even after terraform plan and show not changes
-// and then do the import stuff in the folder for v100
+# This config will create aws endpoint, private endpoint and private endpoint interface
+# To verify that everything is working even after terraform plan and show not changes
+# and then do the import stuff in the folder for v100
 
 resource "mongodbatlas_project" "test" {
   name   = var.project_name
@@ -26,19 +26,8 @@ resource "aws_vpc_endpoint" "ptfe_service" {
   subnet_ids         = [var.aws_subnet_ids]
   security_group_ids = [var.aws_sg_ids]
 }
-
 resource "mongodbatlas_private_endpoint_interface_link" "test" {
   project_id            = mongodbatlas_private_endpoint.test.project_id
   private_link_id       = mongodbatlas_private_endpoint.test.private_link_id
   interface_endpoint_id = aws_vpc_endpoint.ptfe_service.id
-}
-
-output "project_id" {
-  value = mongodbatlas_project.test.id
-}
-output "private_endpoint_id" {
-  value = mongodbatlas_private_endpoint.test.private_link_id
-}
-output "vpc_endpoint_id" {
-  value = aws_vpc_endpoint.ptfe_service.id
 }

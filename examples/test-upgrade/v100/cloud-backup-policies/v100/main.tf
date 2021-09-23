@@ -1,6 +1,6 @@
-// This is the same as version v091 but for mongodbatlas_cloud_backup_schedule but
-// does nothing, it's only to confirm that it works for import from v091 and won't appear changes
-// for cloud backup schedule
+# This is the same as version v091 but for mongodbatlas_cloud_backup_schedule but
+# does nothing, it's only to confirm that it works for import from v091 and won't appear changes
+# for cloud backup schedule
 
 resource "mongodbatlas_project" "project_test" {
   name   = var.project_name
@@ -12,11 +12,11 @@ resource "mongodbatlas_cluster" "cluster_test" {
   name         = var.cluster_name
   disk_size_gb = 5
 
-  // Provider Settings "block"
+  # Provider Settings "block"
   provider_name               = "AWS"
   provider_region_name        = "EU_CENTRAL_1"
   provider_instance_size_name = "M10"
-  cloud_backup                = true //enable cloud provider snapshots
+  cloud_backup                = true # enable cloud provider snapshots
   provider_disk_iops          = 1000
 }
 

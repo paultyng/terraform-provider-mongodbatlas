@@ -4,5 +4,5 @@ terraform {
       source = "mongodb/mongodbatlas"
     }
   }
-  required_version = ">= 0.15"
+  required_version = ">= 0.13"
 }

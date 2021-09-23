@@ -4,10 +4,6 @@ variable "public_key" {
 variable "private_key" {
   description = "Private API key to authenticate to Atlas"
 }
-variable "mongodbversion" {
-  description = "The Major MongoDB Version"
-  default     = "4.2"
-}
 variable "project_id" {
   description = "The Atlas Project Name"
 }

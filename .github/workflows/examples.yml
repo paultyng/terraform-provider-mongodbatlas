@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        terraform_version: ["0.12.29"]
+        terraform_version: ["0.13.0"]
     steps:
       - uses: actions/checkout@v2
         with:
@@ -35,4 +35,25 @@ jobs:
       - name: install tflint
         run: go install github.com/terraform-linters/tflint@v0.31.0
       - name: terraform
-        run: make tflint
+        run: |
+          for DIR in $(find ./examples -type f -name '*.tf' -exec dirname {} \; | sort -u); do
+              pushd "${DIR}"
+              if [ -f terraform.template.tfvars ]; then
+                cp terraform.template.tfvars terraform.tfvars
+              fi
+              echo; echo -e "\e[1;35m===> Initializing Example: $DIR <===\e[0m"; echo
+              terraform init
+              echo; echo -e "\e[1;35m===> Format Checking Example: $DIR <===\e[0m"; echo
+              terraform fmt -check
+              echo; echo -e "\e[1;35m===> Validating Example: $DIR <===\e[0m"; echo
+              # Catch errors
+              terraform validate
+              # Terraform syntax checks
+              tflint \
+                --enable-rule=terraform_deprecated_interpolation \
+                --enable-rule=terraform_deprecated_index \
+                --enable-rule=terraform_unused_declarations \
+                --enable-rule=terraform_comment_syntax \
+                --enable-rule=terraform_required_version
+              popd
+            done

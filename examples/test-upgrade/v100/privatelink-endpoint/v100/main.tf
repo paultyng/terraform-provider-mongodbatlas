@@ -1,21 +1,19 @@
-// This is only for import stuff because it needs the resource names and set to
-// avoid changes when terraform plan
-
+# This is only for import stuff because it needs the resource names and set to
+# avoid changes when terraform plan
 resource "mongodbatlas_project" "test" {
   name   = var.project_name
   org_id = var.org_id
+}
+resource "mongodbatlas_privatelink_endpoint" "test" {
+  project_id    = mongodbatlas_project.test.id
+  provider_name = "AWS"
+  region        = "us-east-1"
 }
 
 provider "aws" {
   region     = "us-east-1"
   access_key = var.aws_access_key
   secret_key = var.aws_secret_key
-}
-
-resource "mongodbatlas_privatelink_endpoint" "test" {
-  project_id    = mongodbatlas_project.test.id
-  provider_name = "AWS"
-  region        = "us-east-1"
 }
 
 resource "aws_vpc_endpoint" "ptfe_service" {

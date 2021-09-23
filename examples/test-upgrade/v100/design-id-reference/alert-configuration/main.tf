@@ -30,14 +30,8 @@ resource "mongodbatlas_alert_configuration" "test" {
   }
 }
 
+# tflint-ignore: terraform_unused_declarations
 data "mongodbatlas_alert_configuration" "test" {
   project_id             = mongodbatlas_alert_configuration.test.project_id
   alert_configuration_id = mongodbatlas_alert_configuration.test.id
-}
-
-output "alert_id_state" {
-  value = mongodbatlas_alert_configuration.test.id
-}
-output "alert_configuration_id" {
-  value = mongodbatlas_alert_configuration.test.alert_configuration_id
 }

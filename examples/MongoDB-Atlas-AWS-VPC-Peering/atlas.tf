@@ -25,7 +25,7 @@ resource "mongodbatlas_cluster" "cluster-atlas" {
   auto_scaling_disk_gb_enabled = true
   mongo_db_major_version       = "5.0"
 
-  //Provider Settings "block"
+  # Provider Settings "block"
   provider_name               = "AWS"
   disk_size_gb                = 10
   provider_instance_size_name = "M10"
@@ -49,6 +49,7 @@ resource "mongodbatlas_network_container" "atlas_container" {
   region_name      = var.atlas_region
 }
 
+# tflint-ignore: terraform_unused_declarations
 data "mongodbatlas_network_container" "atlas_container" {
   container_id = mongodbatlas_network_container.atlas_container.container_id
   project_id   = mongodbatlas_project.aws_atlas.id
