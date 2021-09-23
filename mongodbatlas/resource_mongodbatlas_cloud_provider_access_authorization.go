@@ -56,6 +56,14 @@ func resourceMongoDBAtlasCloudProviderAccessAuthorization() *schema.Resource {
 				Computed: true,
 			},
 		},
+		SchemaVersion: 1,
+		StateUpgraders: []schema.StateUpgrader{
+			{
+				Type:    resourceMongoDBAtlasCloudProviderAccessAuthorizationResourceV0().CoreConfigSchema().ImpliedType(),
+				Upgrade: resourceMongoDBAtlasCloudProviderAccessAuthorizationStateUpgradeV0,
+				Version: 0,
+			},
+		},
 	}
 }
 
@@ -190,7 +198,7 @@ func resourceMongoDBAtlasCloudProviderAccessAuthorizationUpdate(ctx context.Cont
 			return diag.FromErr(fmt.Errorf("error CloudProviderAccessAuthorization missing iam_assumed_role_arn"))
 		}
 
-		iamRole := (roleAWS.(map[string]interface{}))["iam_assumed_role_arn"]
+		iamRole := roleAWS.([]interface{})[0].(map[string]interface{})["iam_assumed_role_arn"]
 
 		req := &matlas.CloudProviderAuthorizationRequest{
 			ProviderName:      targetRole.ProviderName,
@@ -275,4 +283,46 @@ func FindRole(ctx context.Context, conn *matlas.Client, projectID, roleID string
 	}
 
 	return
+}
+
+func resourceMongoDBAtlasCloudProviderAccessAuthorizationResourceV0() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"project_id": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
+			"role_id": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
+			"aws": {
+				Type:     schema.TypeMap,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"iam_assumed_role_arn": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+					},
+				},
+			},
+			"feature_usages": {
+				Type:     schema.TypeList,
+				Elem:     featureUsagesSchema(),
+				Computed: true,
+			},
+			"authorized_date": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+		},
+	}
+}
+
+func resourceMongoDBAtlasCloudProviderAccessAuthorizationStateUpgradeV0(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	rawState["aws"] = []interface{}{}
+
+	return rawState, nil
 }
