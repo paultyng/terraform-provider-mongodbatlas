@@ -100,6 +100,8 @@ func Provider() *schema.Provider {
 			"mongodbatlas_data_lakes":                            dataSourceMongoDBAtlasDataLakes(),
 			"mongodbatlas_event_trigger":                         dataSourceMongoDBAtlasEventTrigger(),
 			"mongodbatlas_event_triggers":                        dataSourceMongoDBAtlasEventTriggers(),
+			"mongodbatlas_project_invitation":                    dataSourceMongoDBAtlasProjectInvitation(),
+			"mongodbatlas_org_invitation":                        dataSourceMongoDBAtlasOrgInvitation(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
@@ -136,6 +138,8 @@ func Provider() *schema.Provider {
 			"mongodbatlas_data_lake":                             resourceMongoDBAtlasDataLake(),
 			"mongodbatlas_event_trigger":                         resourceMongoDBAtlasEventTriggers(),
 			"mongodbatlas_cloud_backup_schedule":                 resourceMongoDBAtlasCloudBackupSchedule(),
+			"mongodbatlas_project_invitation":                    resourceMongoDBAtlasProjectInvitation(),
+			"mongodbatlas_org_invitation":                        resourceMongoDBAtlasOrgInvitation(),
 		},
 
 		ConfigureContextFunc: providerConfigure,
