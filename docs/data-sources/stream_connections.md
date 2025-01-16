@@ -65,8 +65,8 @@ If `type` is of value `Kafka` the following additional attributes are defined:
 * `access` - Information about the networking access. See [access](#access).
 
 ### Access
-* `name` - Id of the vpc peer when the type is `VPC`.
-* `type` - Networking type. Either `PUBLIC` or `VPC`. Default is `PUBLIC`.
+* `type` - Selected networking type. Either `PUBLIC`, `VPC` or `PRIVATE_LINK`. Defaults to `PUBLIC`.
+* `connection_id` - Id of the Private Link connection when type is `PRIVATE_LINK`.
 
 To learn more, see: [MongoDB Atlas API - Stream Connection](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Streams/operation/listStreamConnections) Documentation.
 The [Terraform Provider Examples Section](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/mongodbatlas_stream_instance/atlas-streams-user-journey.md) also contains details on the overall support for Atlas Streams Processing in Terraform.

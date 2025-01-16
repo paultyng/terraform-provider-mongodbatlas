@@ -104,8 +104,8 @@ If `type` is of value `Kafka` the following additional arguments are defined:
 * `access` - Information about the networking access. See [access](#access).
 
 ### Access
-* `name` - Id of the vpc peer when the type is `VPC`.
-* `type` - Selected networking type. Either `PUBLIC` or `VPC`. Defaults to `PUBLIC`.
+* `type` - Selected networking type. Either `PUBLIC`, `VPC` or `PRIVATE_LINK`. Defaults to `PUBLIC`.
+* `connection_id` - Id of the Private Link connection when type is `PRIVATE_LINK`.
 
 ## Import
 

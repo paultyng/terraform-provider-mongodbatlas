@@ -4,6 +4,7 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -14,10 +15,11 @@ import (
 
 var (
 	//go:embed testdata/dummy-ca.pem
-	DummyCACert          string
-	networkingTypeVPC    = "VPC"
-	networkingTypePublic = "PUBLIC"
-	kafkaNetworkingVPC   = fmt.Sprintf(`networking = {
+	DummyCACert               string
+	networkingTypeVPC         = "VPC"
+	networkingTypePublic      = "PUBLIC"
+	networkingTypePrivatelink = "PRIVATE_LINK"
+	kafkaNetworkingVPC        = fmt.Sprintf(`networking = {
 			access = {
 				type = %[1]q
 			}
@@ -175,6 +177,50 @@ func TestAccStreamRSStreamConnection_sample(t *testing.T) {
 				ImportStateIdFunc: checkStreamConnectionImportStateIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccStreamPrivatelinkEndpoint_streamConnection(t *testing.T) {
+	acc.SkipTestForCI(t) // requires Confluent Cloud resources
+	var (
+		resourceName               = "mongodbatlas_stream_connection.test"
+		projectID                  = acc.ProjectIDExecution(t)
+		instanceName               = acc.RandomName()
+		vendor                     = "CONFLUENT"
+		provider                   = "AWS"
+		region                     = "us-east-1"
+		awsAccountID               = os.Getenv("AWS_ACCOUNT_ID")
+		networkID                  = os.Getenv("CONFLUENT_CLOUD_NETWORK_ID")
+		privatelinkAccessID        = os.Getenv("CONFLUENT_CLOUD_PRIVATELINK_ACCESS_ID")
+		privatelinkConfig          = acc.GetCompleteConfluentConfig(true, true, projectID, provider, region, vendor, awsAccountID, networkID, privatelinkAccessID)
+		kafkaNetworkingPrivatelink = fmt.Sprintf(`networking = {
+			access = {
+				type = %[1]q
+				connection_id = mongodbatlas_stream_privatelink_endpoint.test.id
+			}
+		}`, networkingTypePrivatelink)
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             CheckDestroyStreamConnection,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`
+					%[1]s
+					%[2]s
+				`, privatelinkConfig, kafkaStreamConnectionConfig(projectID, instanceName, "user", "rawpassword", "localhost:9092", "earliest", kafkaNetworkingPrivatelink, true)),
+				Check: kafkaStreamConnectionAttributeChecks(resourceName, instanceName, "user", "rawpassword", "localhost:9092", "earliest", networkingTypePrivatelink, true, true),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       checkStreamConnectionImportStateIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"authentication.password"},
 			},
 		},
 	})

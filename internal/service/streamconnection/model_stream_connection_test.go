@@ -12,36 +12,41 @@ import (
 )
 
 const (
-	connectionName       = "Connection"
-	typeValue            = ""
-	clusterName          = "Cluster0"
-	dummyProjectID       = "111111111111111111111111"
-	instanceName         = "InstanceName"
-	authMechanism        = "PLAIN"
-	authUsername         = "user1"
-	securityProtocol     = "SSL"
-	bootstrapServers     = "localhost:9092,another.host:9092"
-	dbRole               = "customRole"
-	dbRoleType           = "CUSTOM"
-	sampleConnectionName = "sample_stream_solar"
-	networkingType       = "PUBLIC"
+	connectionName            = "Connection"
+	typeValue                 = ""
+	clusterName               = "Cluster0"
+	dummyProjectID            = "111111111111111111111111"
+	instanceName              = "InstanceName"
+	authMechanism             = "PLAIN"
+	authUsername              = "user1"
+	securityProtocol          = "SSL"
+	bootstrapServers          = "localhost:9092,another.host:9092"
+	dbRole                    = "customRole"
+	dbRoleType                = "CUSTOM"
+	sampleConnectionName      = "sample_stream_solar"
+	networkingType            = "PUBLIC"
+	privatelinkNetworkingType = "PRIVATE_LINK"
 )
+
+var connectionID = "connectionID"
 
 var configMap = map[string]string{
 	"auto.offset.reset": "earliest",
 }
 
 type sdkToTFModelTestCase struct {
-	SDKResp              *admin.StreamsConnection
-	providedProjID       string
-	providedInstanceName string
-	providedAuthConfig   *types.Object
-	expectedTFModel      *streamconnection.TFStreamConnectionModel
-	name                 string
+	SDKResp                  *admin.StreamsConnection
+	providedProjID           string
+	providedInstanceName     string
+	providedAuthConfig       *types.Object
+	providedNetworkingConfig *types.Object
+	expectedTFModel          *streamconnection.TFStreamConnectionModel
+	name                     string
 }
 
 func TestStreamConnectionSDKToTFModel(t *testing.T) {
 	var authConfigWithPasswordDefined = tfAuthenticationObject(t, authMechanism, authUsername, "raw password")
+	var privateLinkNetworkingConfig = tfNetworkingObject(t, privatelinkNetworkingType, &connectionID)
 
 	testCases := []sdkToTFModelTestCase{
 		{
@@ -55,9 +60,10 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 					Type: admin.PtrString(dbRoleType),
 				},
 			},
-			providedProjID:       dummyProjectID,
-			providedInstanceName: instanceName,
-			providedAuthConfig:   nil,
+			providedProjID:           dummyProjectID,
+			providedInstanceName:     instanceName,
+			providedAuthConfig:       nil,
+			providedNetworkingConfig: nil,
 			expectedTFModel: &streamconnection.TFStreamConnectionModel{
 				ProjectID:       types.StringValue(dummyProjectID),
 				InstanceName:    types.StringValue(instanceName),
@@ -87,9 +93,10 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 					BrokerPublicCertificate: admin.PtrString(DummyCACert),
 				},
 			},
-			providedProjID:       dummyProjectID,
-			providedInstanceName: instanceName,
-			providedAuthConfig:   &authConfigWithPasswordDefined,
+			providedProjID:           dummyProjectID,
+			providedInstanceName:     instanceName,
+			providedAuthConfig:       &authConfigWithPasswordDefined,
+			providedNetworkingConfig: nil,
 			expectedTFModel: &streamconnection.TFStreamConnectionModel{
 				ProjectID:        types.StringValue(dummyProjectID),
 				InstanceName:     types.StringValue(instanceName),
@@ -109,9 +116,10 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 				Name: admin.PtrString(connectionName),
 				Type: admin.PtrString("Kafka"),
 			},
-			providedProjID:       dummyProjectID,
-			providedInstanceName: instanceName,
-			providedAuthConfig:   nil,
+			providedProjID:           dummyProjectID,
+			providedInstanceName:     instanceName,
+			providedAuthConfig:       nil,
+			providedNetworkingConfig: nil,
 			expectedTFModel: &streamconnection.TFStreamConnectionModel{
 				ProjectID:       types.StringValue(dummyProjectID),
 				InstanceName:    types.StringValue(instanceName),
@@ -140,9 +148,10 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 					BrokerPublicCertificate: admin.PtrString(DummyCACert),
 				},
 			},
-			providedProjID:       dummyProjectID,
-			providedInstanceName: instanceName,
-			providedAuthConfig:   nil,
+			providedProjID:           dummyProjectID,
+			providedInstanceName:     instanceName,
+			providedAuthConfig:       nil,
+			providedNetworkingConfig: nil,
 			expectedTFModel: &streamconnection.TFStreamConnectionModel{
 				ProjectID:        types.StringValue(dummyProjectID),
 				InstanceName:     types.StringValue(instanceName),
@@ -154,6 +163,44 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 				Security:         tfSecurityObject(t, DummyCACert, securityProtocol),
 				DBRoleToExecute:  types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
 				Networking:       types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
+			},
+		},
+		{
+			name: "Kafka connection type SDK response with Private link networking config",
+			SDKResp: &admin.StreamsConnection{
+				Name: admin.PtrString(connectionName),
+				Type: admin.PtrString("Kafka"),
+				Authentication: &admin.StreamsKafkaAuthentication{
+					Mechanism: admin.PtrString(authMechanism),
+					Username:  admin.PtrString(authUsername),
+				},
+				BootstrapServers: admin.PtrString(bootstrapServers),
+				Config:           &configMap,
+				Security: &admin.StreamsKafkaSecurity{
+					Protocol:                admin.PtrString(securityProtocol),
+					BrokerPublicCertificate: admin.PtrString(DummyCACert),
+				},
+				Networking: &admin.StreamsKafkaNetworking{
+					Access: &admin.StreamsKafkaNetworkingAccess{
+						Type: admin.PtrString(privatelinkNetworkingType),
+					},
+				},
+			},
+			providedProjID:           dummyProjectID,
+			providedInstanceName:     instanceName,
+			providedAuthConfig:       nil,
+			providedNetworkingConfig: &privateLinkNetworkingConfig,
+			expectedTFModel: &streamconnection.TFStreamConnectionModel{
+				ProjectID:        types.StringValue(dummyProjectID),
+				InstanceName:     types.StringValue(instanceName),
+				ConnectionName:   types.StringValue(connectionName),
+				Type:             types.StringValue("Kafka"),
+				Authentication:   tfAuthenticationObjectWithNoPassword(t, authMechanism, authUsername),
+				BootstrapServers: types.StringValue(bootstrapServers),
+				Config:           tfConfigMap(t, configMap),
+				Security:         tfSecurityObject(t, DummyCACert, securityProtocol),
+				DBRoleToExecute:  types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
+				Networking:       tfNetworkingObject(t, privatelinkNetworkingType, &connectionID),
 			},
 		},
 		{
@@ -180,7 +227,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel, diags := streamconnection.NewTFStreamConnection(context.Background(), tc.providedProjID, tc.providedInstanceName, tc.providedAuthConfig, tc.SDKResp)
+			resultModel, diags := streamconnection.NewTFStreamConnection(context.Background(), tc.providedProjID, tc.providedInstanceName, tc.providedAuthConfig, tc.providedNetworkingConfig, tc.SDKResp)
 			if diags.HasError() {
 				t.Fatalf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}
@@ -264,7 +311,7 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 						Config:           tfConfigMap(t, configMap),
 						Security:         tfSecurityObject(t, DummyCACert, securityProtocol),
 						DBRoleToExecute:  types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
-						Networking:       tfNetworkingObject(t, networkingType),
+						Networking:       tfNetworkingObject(t, networkingType, nil),
 					},
 					{
 						ID:              types.StringValue(fmt.Sprintf("%s-%s-%s", instanceName, dummyProjectID, connectionName)),
@@ -485,12 +532,17 @@ func tfDBRoleToExecuteObject(t *testing.T, role, roleType string) types.Object {
 	return auth
 }
 
-func tfNetworkingObject(t *testing.T, networkingType string) types.Object {
+func tfNetworkingObject(t *testing.T, networkingType string, connectionID *string) types.Object {
 	t.Helper()
+	networkingAccessModel, diags := types.ObjectValueFrom(context.Background(), streamconnection.NetworkingAccessObjectType.AttrTypes, streamconnection.TFNetworkingAccessModel{
+		Type:         types.StringValue(networkingType),
+		ConnectionID: types.StringPointerValue(connectionID),
+	})
+	if diags.HasError() {
+		t.Errorf("failed to create terraform data model: %s", diags.Errors()[0].Summary())
+	}
 	networking, diags := types.ObjectValueFrom(context.Background(), streamconnection.NetworkingObjectType.AttrTypes, streamconnection.TFNetworkingModel{
-		Access: streamconnection.TFNetworkingAccessModel{
-			Type: types.StringValue(networkingType),
-		},
+		Access: networkingAccessModel,
 	})
 	if diags.HasError() {
 		t.Errorf("failed to create terraform data model: %s", diags.Errors()[0].Summary())

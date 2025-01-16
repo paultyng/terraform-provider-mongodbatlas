@@ -1,4 +1,3 @@
-//nolint:gocritic
 package streamprivatelinkendpoint
 
 import (

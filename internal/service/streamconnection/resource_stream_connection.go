@@ -81,15 +81,17 @@ var DBRoleToExecuteObjectType = types.ObjectType{AttrTypes: map[string]attr.Type
 }}
 
 type TFNetworkingAccessModel struct {
-	Type types.String `tfsdk:"type"`
+	Type         types.String `tfsdk:"type"`
+	ConnectionID types.String `tfsdk:"connection_id"`
 }
 
 var NetworkingAccessObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"type": types.StringType,
+	"type":          types.StringType,
+	"connection_id": types.StringType,
 }}
 
 type TFNetworkingModel struct {
-	Access TFNetworkingAccessModel `tfsdk:"access"`
+	Access types.Object `tfsdk:"access"`
 }
 
 var NetworkingObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
@@ -122,7 +124,7 @@ func (r *streamConnectionRS) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
-	newStreamConnectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, &streamConnectionPlan.Authentication, apiResp)
+	newStreamConnectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, &streamConnectionPlan.Authentication, &streamConnectionPlan.Networking, apiResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -151,7 +153,7 @@ func (r *streamConnectionRS) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	newStreamConnectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, &streamConnectionState.Authentication, apiResp)
+	newStreamConnectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, &streamConnectionState.Authentication, &streamConnectionState.Networking, apiResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -181,7 +183,7 @@ func (r *streamConnectionRS) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 
-	newStreamConnectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, &streamConnectionPlan.Authentication, apiResp)
+	newStreamConnectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, &streamConnectionPlan.Authentication, &streamConnectionPlan.Networking, apiResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
