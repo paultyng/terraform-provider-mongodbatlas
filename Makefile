@@ -32,6 +32,12 @@ help:
 build: fmt fmtcheck ## Generate the binary in ./bin
 	go build -ldflags "$(LINKER_FLAGS)" -o $(DESTINATION)
 
+.PHONY: clean-atlas-org
+clean-atlas-org: ## Run a test to clean all projects and pending resources in an Atlas org, supports export DRY_RUN=false (default=true)
+	@$(eval export MONGODB_ATLAS_CLEAN_ORG?=true)
+	@$(eval export DRY_RUN?=true)
+	go test -count=1 'github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/clean' -timeout 3600s -parallel=250 -run 'TestCleanProjectAndClusters' -v -ldflags="$(LINKER_FLAGS)"
+
 .PHONY: test
 test: fmtcheck ## Run unit tests
 	go test ./... -timeout=30s -parallel=4 -race

@@ -1,0 +1,27 @@
+name: clean-atlas-org
+description: 'Cleans up an Atlas organization bot projects'
+
+inputs:
+  repo-path:
+    description: 'Path to the terraform-provider-mongodbatlas repository'
+    default: ''
+  dry-run:
+    description: 'Dry run the cleanup'
+    default: 'false'
+  clean-only-when-no-clusters:
+    description: 'Only projects with 0 clusters'
+    default: 'false'
+
+runs:
+  using: 'composite'
+  steps:
+    - uses: actions/setup-go@3041bf56c941b39c61721a86cd11f3bb1338122a
+      with:
+        go-version-file: ${{ format('{0}go.mod', inputs.repo-path) }}
+    - name: Build
+      run: make clean-atlas-org
+      shell: bash
+      env:
+        DRY_RUN: ${{ inputs.dry-run }}
+        MONGODB_ATLAS_CLEAN_ORG: 'true'
+        MONGODB_ATLAS_CLEAN_ONLY_WHEN_NO_CLUSTERS: ${{ inputs.clean-only-when-no-clusters }}

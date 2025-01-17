@@ -12,33 +12,25 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-        with:
-          sparse-checkout: |
-            scripts
-      - uses: mongodb/atlas-github-action@15663d068c40a8582d881560961fce9d45e0df9a
-      - name: Cleanup cloud-dev
-        shell: bash
+      - uses: ./.github/templates/clean-atlas-org
+        name: Clean Atlas Org Dev
         env:
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
           MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV }}
           MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
-          MONGODB_ATLAS_OPS_MANAGER_URL: ${{vars.MONGODB_ATLAS_BASE_URL}}
-        run: ./scripts/cleanup-test-env.sh      
+          MONGODB_ATLAS_BASE_URL: ${{vars.MONGODB_ATLAS_BASE_URL}}
+          MONGODB_ATLAS_CLEAN_RETRY_ATTEMPTS: "1" # Removing atlas clusters is slow, we don't want to block the TestSuite workflow, during next run we will retry again
   cleanup-test-env-qa:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-        with:
-          sparse-checkout: |
-            scripts
-      - uses: mongodb/atlas-github-action@15663d068c40a8582d881560961fce9d45e0df9a
-      - name: Cleanup test env network
-        shell: bash
+      - uses: ./.github/templates/clean-atlas-org
+        name: Clean Atlas Org QA
         env:
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_QA }}
           MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_QA }}
           MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_QA }}
-          MONGODB_ATLAS_OPS_MANAGER_URL: ${{ vars.MONGODB_ATLAS_BASE_URL_QA }}
-        run: ./scripts/cleanup-test-env.sh
+          MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL_QA }}
+          MONGODB_ATLAS_CLEAN_RETRY_ATTEMPTS: "1" # Removing atlas clusters is slow, we don't want to block the TestSuite workflow, during next run we will retry again
