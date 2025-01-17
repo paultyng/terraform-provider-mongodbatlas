@@ -25,7 +25,7 @@ func overrideAttributesWithPrevStateValue(modelIn, modelOut *TFModel) {
 }
 
 func findNumShardsUpdates(ctx context.Context, state, plan *TFModel, diags *diag.Diagnostics) map[string]int64 {
-	if !usingLegacySchema(ctx, plan.ReplicationSpecs, diags) {
+	if !usingLegacyShardingConfig(ctx, plan.ReplicationSpecs, diags) {
 		return nil
 	}
 	stateCounts := numShardsMap(ctx, state.ReplicationSpecs, diags)
@@ -65,7 +65,7 @@ func resolveAPIInfo(ctx context.Context, diags *diag.Diagnostics, client *config
 		ZoneNameReplicationSpecIDs: replicationSpecIDsFromOldAPI(clusterRespOld),
 		ForceLegacySchemaFailed:    forceLegacySchemaFailed,
 		ZoneNameNumShards:          numShardsMapFromOldAPI(clusterRespOld),
-		UsingLegacySchema:          forceLegacySchema || usingLegacySchema(ctx, plan.ReplicationSpecs, diags),
+		UsingLegacySchema:          forceLegacySchema || usingLegacyShardingConfig(ctx, plan.ReplicationSpecs, diags),
 	}
 }
 
@@ -143,7 +143,7 @@ func numShardsCounts(ctx context.Context, input types.List, diags *diag.Diagnost
 	return counts
 }
 
-func usingLegacySchema(ctx context.Context, input types.List, diags *diag.Diagnostics) bool {
+func usingLegacyShardingConfig(ctx context.Context, input types.List, diags *diag.Diagnostics) bool {
 	counts := numShardsCounts(ctx, input, diags)
 	if diags.HasError() {
 		return false

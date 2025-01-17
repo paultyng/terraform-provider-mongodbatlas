@@ -514,7 +514,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	// With old sharding config we call older API (2024-08-05) to avoid cluster having asymmetric autoscaling mode. Old sharding config can only represent symmetric clusters.
 	if isUsingOldShardingConfiguration(d) {
 		var cluster20240805 *admin20240805.ClusterDescription20240805
-		cluster20240805, _, err = connV220240805.ClustersApi.CreateCluster(ctx, projectID, ConvertClusterDescription20241023to20240805(params)).Execute()
+		cluster20240805, _, err = connV220240805.ClustersApi.CreateCluster(ctx, projectID, advancedclustertpf.ConvertClusterDescription20241023to20240805(params)).Execute()
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorCreate, err))
 		}

@@ -96,61 +96,6 @@ func replicationSpecIDsFromOldAPI(clusterRespOld *admin20240530.AdvancedClusterD
 	return zoneNameSpecIDs
 }
 
-func convertHardwareSpecToOldSDK(hwspec *admin.HardwareSpec20240805) *admin20240530.HardwareSpec {
-	if hwspec == nil {
-		return nil
-	}
-	return &admin20240530.HardwareSpec{
-		DiskIOPS:      hwspec.DiskIOPS,
-		EbsVolumeType: hwspec.EbsVolumeType,
-		InstanceSize:  hwspec.InstanceSize,
-		NodeCount:     hwspec.NodeCount,
-	}
-}
-
-func convertAdvancedAutoScalingSettingsToOldSDK(settings *admin.AdvancedAutoScalingSettings) *admin20240530.AdvancedAutoScalingSettings {
-	if settings == nil {
-		return nil
-	}
-	return &admin20240530.AdvancedAutoScalingSettings{
-		Compute: convertAdvancedComputeAutoScalingToOldSDK(settings.Compute),
-		DiskGB:  convertDiskGBAutoScalingToOldSDK(settings.DiskGB),
-	}
-}
-
-func convertAdvancedComputeAutoScalingToOldSDK(settings *admin.AdvancedComputeAutoScaling) *admin20240530.AdvancedComputeAutoScaling {
-	if settings == nil {
-		return nil
-	}
-	return &admin20240530.AdvancedComputeAutoScaling{
-		Enabled:          settings.Enabled,
-		MaxInstanceSize:  settings.MaxInstanceSize,
-		MinInstanceSize:  settings.MinInstanceSize,
-		ScaleDownEnabled: settings.ScaleDownEnabled,
-	}
-}
-
-func convertDiskGBAutoScalingToOldSDK(settings *admin.DiskGBAutoScaling) *admin20240530.DiskGBAutoScaling {
-	if settings == nil {
-		return nil
-	}
-	return &admin20240530.DiskGBAutoScaling{
-		Enabled: settings.Enabled,
-	}
-}
-
-func convertDedicatedHardwareSpecToOldSDK(spec *admin.DedicatedHardwareSpec20240805) *admin20240530.DedicatedHardwareSpec {
-	if spec == nil {
-		return nil
-	}
-	return &admin20240530.DedicatedHardwareSpec{
-		NodeCount:     spec.NodeCount,
-		DiskIOPS:      spec.DiskIOPS,
-		EbsVolumeType: spec.EbsVolumeType,
-		InstanceSize:  spec.InstanceSize,
-	}
-}
-
 // copied from advancedcluster/resource_update_logic.go
 func populateIDValuesUsingNewAPI(ctx context.Context, projectID, clusterName string, connV2ClusterAPI admin.ClustersApi, replicationSpecs *[]admin.ReplicationSpec20240805) (*[]admin.ReplicationSpec20240805, error) {
 	if replicationSpecs == nil || len(*replicationSpecs) == 0 {

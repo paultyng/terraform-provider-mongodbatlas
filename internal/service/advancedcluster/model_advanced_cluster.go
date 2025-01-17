@@ -1024,7 +1024,7 @@ func expandAdvancedReplicationSpecOldSDK(tfMap map[string]any) *admin20240530.Re
 	apiObject := &admin20240530.ReplicationSpec{
 		NumShards:     conversion.Pointer(tfMap["num_shards"].(int)),
 		ZoneName:      conversion.StringPtr(tfMap["zone_name"].(string)),
-		RegionConfigs: convertRegionConfigSliceToOldSDK(expandRegionConfigs(tfMap["region_configs"].([]any), nil)),
+		RegionConfigs: advancedclustertpf.ConvertRegionConfigSlice20241023to20240530(expandRegionConfigs(tfMap["region_configs"].([]any), nil)),
 	}
 	if tfMap["id"].(string) != "" {
 		apiObject.Id = conversion.StringPtr(tfMap["id"].(string))

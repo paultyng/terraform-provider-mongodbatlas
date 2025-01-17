@@ -3,7 +3,6 @@ package advancedclustertpf
 import (
 	"context"
 	"fmt"
-	"reflect"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -16,7 +15,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/update"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
@@ -72,7 +70,6 @@ func deprecationMsgOldSchema(name string) string {
 
 var (
 	pauseRequest               = admin.ClusterDescription20240805{Paused: conversion.Pointer(true)}
-	resumeRequest              = admin.ClusterDescription20240805{Paused: conversion.Pointer(false)}
 	errorSchemaDowngradeDetail = "Cluster name %s. " + fmt.Sprintf("cannot increase num_shards to > 1 under the current configuration. New shards can be defined by adding new replication spec objects; %s", DeprecationOldSchemaAction)
 )
 
@@ -136,15 +133,15 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		return
 	}
 
-	stateUsingLegacy := usingLegacySchema(ctx, state.ReplicationSpecs, diags)
-	planUsingLegacy := usingLegacySchema(ctx, plan.ReplicationSpecs, diags)
+	stateUsingLegacy := usingLegacyShardingConfig(ctx, state.ReplicationSpecs, diags)
+	planUsingLegacy := usingLegacyShardingConfig(ctx, plan.ReplicationSpecs, diags)
 	if planUsingLegacy && !stateUsingLegacy {
 		diags.AddError(errorSchemaDowngrade, fmt.Sprintf(errorSchemaDowngradeDetail, plan.Name.ValueString()))
 		return
 	}
-	isSchemaUpgrade := stateUsingLegacy && !planUsingLegacy
+	isShardingConfigUpgrade := stateUsingLegacy && !planUsingLegacy
 	stateReq := normalizeFromTFModel(ctx, &state, diags, false)
-	planReq := normalizeFromTFModel(ctx, &plan, diags, isSchemaUpgrade)
+	planReq := normalizeFromTFModel(ctx, &plan, diags, isShardingConfigUpgrade)
 	if diags.HasError() {
 		return
 	}
@@ -168,7 +165,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		if upgradeRequest != nil {
 			clusterResp = r.applyTenantUpgrade(ctx, &plan, upgradeRequest, diags)
 		} else {
-			if isSchemaUpgrade {
+			if isShardingConfigUpgrade {
 				specs, err := populateIDValuesUsingNewAPI(ctx, plan.ProjectID.ValueString(), plan.Name.ValueString(), r.Client.AtlasV2.ClustersApi, patchReq.ReplicationSpecs)
 				if err != nil {
 					diags.AddError(errorSchemaUpgradeReadIDs, defaultAPIErrorDetails(plan.Name.ValueString(), err))
@@ -249,8 +246,8 @@ func (r *rs) createCluster(ctx context.Context, plan *TFModel, diags *diag.Diagn
 	if pauseAfter {
 		latestReq.Paused = nil
 	}
-	if usingLegacySchema(ctx, plan.ReplicationSpecs, diags) {
-		legacyReq := newLegacyModel(latestReq)
+	if usingLegacyShardingConfig(ctx, plan.ReplicationSpecs, diags) {
+		legacyReq := ConvertClusterDescription20241023to20240805(latestReq)
 		_, _, err = api20240805.CreateCluster(ctx, projectID, legacyReq).Execute()
 	} else {
 		_, _, err = api.CreateCluster(ctx, projectID, latestReq).Execute()
@@ -386,83 +383,50 @@ func (r *rs) applyAdvancedConfigurationChanges(ctx context.Context, diags *diag.
 }
 
 func (r *rs) applyClusterChanges(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, patchReq *admin.ClusterDescription20240805) *admin.ClusterDescription20240805 {
-	var cluster *admin.ClusterDescription20240805
-	if usingLegacySchema(ctx, plan.ReplicationSpecs, diags) {
-		// Only updates of replication specs will be done with legacy API
-		legacySpecsChanged := r.updateLegacyReplicationSpecs(ctx, state, plan, diags, patchReq.ReplicationSpecs)
+	if usingLegacyShardingConfig(ctx, plan.ReplicationSpecs, diags) {
+		// With old sharding config we call older API (2023-02-01) for updating replication specs to avoid cluster having asymmetric autoscaling mode. Old sharding config can only represent symmetric clusters.
+		r.updateLegacyReplicationSpecs(ctx, state, plan, diags, patchReq.ReplicationSpecs)
 		if diags.HasError() {
 			return nil
 		}
-		patchReq.ReplicationSpecs = nil // Already updated by legacy API
-		if legacySpecsChanged && update.IsZeroValues(patchReq) {
+		patchReq.ReplicationSpecs = nil // Already updated by 2023-02-01 API
+		if update.IsZeroValues(patchReq) {
 			return AwaitChanges(ctx, r.Client.AtlasV2.ClustersApi, &plan.Timeouts, diags, plan.ProjectID.ValueString(), plan.Name.ValueString(), changeReasonUpdate)
 		}
 	}
-	if update.IsZeroValues(patchReq) {
-		return cluster
-	}
-	pauseAfter := false
-	if patchReq.Paused != nil && patchReq.GetPaused() {
-		// More changes than pause, need to pause after
-		if !reflect.DeepEqual(pauseRequest, *patchReq) {
-			pauseAfter = true
-			patchReq.Paused = nil
-		}
-	} else if patchReq.Paused != nil && !patchReq.GetPaused() {
-		// More changes than pause, need to resume before applying changes
-		if !reflect.DeepEqual(resumeRequest, *patchReq) {
-			patchReq.Paused = nil
-			_ = r.updateAndWait(ctx, &resumeRequest, diags, plan)
-		}
-	}
-	if diags.HasError() {
-		return nil
-	}
-	replicationSpecsUpdated := patchReq.ReplicationSpecs != nil
-	if replicationSpecsUpdated {
-		// Cannot call latest API (2024-10-23 or newer) as it can enable ISS autoscaling
-		legacyPatch := newLegacyModel(patchReq)
-		cluster = r.updateAndWaitLegacy(ctx, legacyPatch, diags, plan)
-	} else {
-		cluster = r.updateAndWait(ctx, patchReq, diags, plan)
-	}
-	if pauseAfter && cluster != nil {
-		cluster = r.updateAndWait(ctx, &pauseRequest, diags, plan)
-	}
-	return cluster
+	// latest API can be used safely because if old sharding config is used replication specs will not be included in this request
+	return r.updateAndWait(ctx, patchReq, diags, plan)
 }
 
-func (r *rs) updateLegacyReplicationSpecs(ctx context.Context, state, plan *TFModel, diags *diag.Diagnostics, specChanges *[]admin.ReplicationSpec20240805) bool {
+func (r *rs) updateLegacyReplicationSpecs(ctx context.Context, state, plan *TFModel, diags *diag.Diagnostics, specChanges *[]admin.ReplicationSpec20240805) {
 	numShardsUpdates := findNumShardsUpdates(ctx, state, plan, diags)
 	if diags.HasError() {
-		return false
+		return
 	}
 	if specChanges == nil && numShardsUpdates == nil { // No changes to replication specs
-		return false
+		return
 	}
 	if specChanges == nil {
 		// Use state replication specs as there are no changes in plan except for numShards updates
 		specChanges = newReplicationSpec20240805(ctx, state.ReplicationSpecs, diags)
 		if diags.HasError() {
-			return false
+			return
 		}
 	}
 	numShardsPlan := numShardsMap(ctx, plan.ReplicationSpecs, diags)
 	legacyIDs := externalIDToLegacyID(ctx, state.ReplicationSpecs, diags)
 	if diags.HasError() {
-		return false
+		return
 	}
 	legacyPatch := newLegacyModel20240530ReplicationSpecsAndDiskGBOnly(specChanges, numShardsPlan, state.DiskSizeGB.ValueFloat64Pointer(), legacyIDs)
 	if diags.HasError() {
-		return false
+		return
 	}
 	api20240530 := r.Client.AtlasV220240530.ClustersApi
 	_, _, err := api20240530.UpdateCluster(ctx, plan.ProjectID.ValueString(), plan.Name.ValueString(), legacyPatch).Execute()
 	if err != nil {
 		diags.AddError(errorUpdateLegacy20240530, defaultAPIErrorDetails(plan.Name.ValueString(), err))
-		return false
 	}
-	return true
 }
 
 func (r *rs) updateAndWait(ctx context.Context, patchReq *admin.ClusterDescription20240805, diags *diag.Diagnostics, tfModel *TFModel) *admin.ClusterDescription20240805 {
@@ -475,18 +439,6 @@ func (r *rs) updateAndWait(ctx context.Context, patchReq *admin.ClusterDescripti
 		return nil
 	}
 	return AwaitChanges(ctx, r.Client.AtlasV2.ClustersApi, &tfModel.Timeouts, diags, projectID, clusterName, changeReasonUpdate)
-}
-
-func (r *rs) updateAndWaitLegacy(ctx context.Context, patchReq *admin20240805.ClusterDescription20240805, diags *diag.Diagnostics, plan *TFModel) *admin.ClusterDescription20240805 {
-	api20240805 := r.Client.AtlasV220240805.ClustersApi
-	projectID := plan.ProjectID.ValueString()
-	clusterName := plan.Name.ValueString()
-	_, _, err := api20240805.UpdateCluster(ctx, projectID, clusterName, patchReq).Execute()
-	if err != nil {
-		diags.AddError(errorUpdateLegacy20240805, defaultAPIErrorDetails(clusterName, err))
-		return nil
-	}
-	return AwaitChanges(ctx, r.Client.AtlasV2.ClustersApi, &plan.Timeouts, diags, projectID, clusterName, changeReasonUpdate)
 }
 
 func (r *rs) applyTenantUpgrade(ctx context.Context, plan *TFModel, upgradeRequest *admin.LegacyAtlasTenantClusterUpgradeRequest, diags *diag.Diagnostics) *admin.ClusterDescription20240805 {

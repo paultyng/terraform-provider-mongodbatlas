@@ -1065,7 +1065,6 @@ func TestAccClusterAdvancedCluster_pinnedFCVWithVersionUpgradeAndDowngrade(t *te
 }
 
 func TestAccAdvancedCluster_oldToNewSchemaWithAutoscalingEnabled(t *testing.T) {
-	acc.SkipIfAdvancedClusterV2Schema(t)
 	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 8)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -1086,7 +1085,6 @@ func TestAccAdvancedCluster_oldToNewSchemaWithAutoscalingEnabled(t *testing.T) {
 }
 
 func TestAccAdvancedCluster_oldToNewSchemaWithAutoscalingDisabledToEnabled(t *testing.T) {
-	acc.SkipIfAdvancedClusterV2Schema(t)
 	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 8)
 
 	resource.ParallelTest(t, resource.TestCase{

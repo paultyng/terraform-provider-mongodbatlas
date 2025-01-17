@@ -1,10 +1,10 @@
-package advancedcluster_test
+package advancedclustertpf_test
 
 import (
 	"testing"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
 	"github.com/stretchr/testify/assert"
 	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
@@ -178,15 +178,15 @@ func TestConvertClusterDescription20241023to20240805(t *testing.T) {
 			expectedOutput: &admin20240805.ClusterDescription20240805{
 				ReplicationSpecs: nil,
 				BiConnector:      nil,
-				Labels:           &[]admin20240805.ComponentLabel{},
-				Tags:             &[]admin20240805.ResourceTag{},
+				Labels:           nil,
+				Tags:             nil,
 			},
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			result := advancedcluster.ConvertClusterDescription20241023to20240805(tc.input)
+			result := advancedclustertpf.ConvertClusterDescription20241023to20240805(tc.input)
 			assert.Equal(t, tc.expectedOutput, result)
 		})
 	}
