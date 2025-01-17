@@ -98,6 +98,12 @@ on:
       mongodb_atlas_flex_project_id:
         type: string
         required: true
+      confluent_cloud_network_id:
+        type: string
+        required: true
+      confluent_cloud_privatelink_access_id:
+        type: string
+        required: true
     secrets: # all secrets are passed explicitly in this workflow
       mongodb_atlas_public_key:
         required: true
@@ -166,6 +172,10 @@ on:
       azure_key_identifier_updated:
         required: true
       azure_app_secret:
+        required: true
+      confluent_cloud_api_key:
+        required: true
+      confluent_cloud_api_secret:
         required: true
           
 env:
@@ -331,6 +341,7 @@ jobs:
             - 'internal/service/streamconnection/*.go'
             - 'internal/service/streaminstance/*.go'
             - 'internal/service/streamprocessor/*.go'
+            - 'internal/service/streamprivatelinkendpoint/*.go'
 
   advanced_cluster:
     needs: [ change-detection, get-provider-version ]
@@ -1056,8 +1067,14 @@ jobs:
         - name: Acceptance Tests
           env:
             MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
+            AWS_ACCOUNT_ID: ${{ secrets.aws_account_id }}
+            CONFLUENT_CLOUD_API_KEY: ${{ secrets.confluent_cloud_api_key }}
+            CONFLUENT_CLOUD_API_SECRET: ${{ secrets.confluent_cloud_api_secret }}
+            CONFLUENT_CLOUD_NETWORK_ID: ${{ inputs.confluent_cloud_network_id }}
+            CONFLUENT_CLOUD_PRIVATELINK_ACCESS_ID: ${{ inputs.confluent_cloud_privatelink_access_id }}
             ACCTEST_PACKAGES: |
               ./internal/service/streamconnection
               ./internal/service/streaminstance
               ./internal/service/streamprocessor
+              ./internal/service/streamprivatelinkendpoint
           run: make testacc

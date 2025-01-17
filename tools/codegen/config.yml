@@ -65,3 +65,16 @@ resources:
     schema:
       aliases:
         group_id: project_id
+
+  stream_privatelink_endpoint:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/streams/privateLinkConnections/{connectionId}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/streams/privateLinkConnections
+      method: POST
+    schema:
+      aliases:
+        group_id: project_id
+        _id: id
+      ignores: ["links"]

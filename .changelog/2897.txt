@@ -1,0 +1,7 @@
+```release-note:new-datasource
+mongodbatlas_stream_privatelink_endpoint
+```
+
+```release-note:new-datasource
+mongodbatlas_stream_privatelink_endpoints
+```

@@ -1,0 +1,10 @@
+# {{.Type}}: {{.Name}}
+
+`{{.Name}}` describes a Privatelink Endpoint for Streams.
+
+## Example Usages
+{{ tffile (printf "examples/%s/confluent_dedicated_cluster/main.tf" .Name )}}
+
+{{ .SchemaMarkdown | trimspace }}
+
+For more information see: [MongoDB Atlas API - Streams Privatelink](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/createPrivateLinkConnection) Documentation.

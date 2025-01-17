@@ -31,6 +31,10 @@ func ExternalProvidersWithAWS() map[string]resource.ExternalProvider {
 	return acc.ExternalProvidersWithAWS(versionConstraint())
 }
 
+func ExternalProvidersWithConfluent() map[string]resource.ExternalProvider {
+	return acc.ExternalProvidersWithConfluent(versionConstraint())
+}
+
 func checkLastVersion(tb testing.TB) {
 	tb.Helper()
 	validateConflictingEnvVars(tb)

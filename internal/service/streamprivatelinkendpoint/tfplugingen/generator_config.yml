@@ -1,0 +1,23 @@
+provider:
+  name: mongodbatlas
+
+# TODO: Endpoints from Atlas Admin API must be specified for schema and model generation. Singular or plural data sources can be removed if not used.
+
+resources:
+  stream_privatelink_endpoint:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/streams/privateLinkConnections/{connectionId}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/streams/privateLinkConnections
+      method: POST
+
+data_sources:
+  stream_privatelink_endpoint:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/streams/privateLinkConnections/{connectionId}
+      method: GET
+  stream_privatelink_endpoints:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/streams/privateLinkConnections
+      method: GET
