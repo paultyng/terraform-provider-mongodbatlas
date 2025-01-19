@@ -6,12 +6,9 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-)
-
-const (
-	resourceName = "mongodbatlas_advanced_cluster.test"
 )
 
 func TestAccAdvancedCluster_moveBasic(t *testing.T) {
@@ -31,10 +28,11 @@ func TestAccAdvancedCluster_moveBasic(t *testing.T) {
 			},
 			{
 				Config: configMoveSecond(projectID, clusterName),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
-				),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PostApplyPreRefresh: []plancheck.PlanCheck{
+						plancheck.ExpectEmptyPlan(),
+					},
+				},
 			},
 		},
 	})

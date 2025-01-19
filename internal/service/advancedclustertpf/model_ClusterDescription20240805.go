@@ -104,12 +104,14 @@ func NewLabelsObjType(ctx context.Context, input *[]admin.ComponentLabel, diags 
 	if input == nil {
 		return types.SetNull(LabelsObjType)
 	}
-	tfModels := make([]TFLabelsModel, len(*input))
-	for i, item := range *input {
-		tfModels[i] = TFLabelsModel{
-			Key:   types.StringValue(conversion.SafeValue(item.Key)),
-			Value: types.StringValue(conversion.SafeValue(item.Value)),
+	tfModels := make([]TFLabelsModel, 0, len(*input))
+	for _, item := range *input {
+		key := conversion.SafeValue(item.Key)
+		value := conversion.SafeValue(item.Value)
+		if key == IgnoreLabelKey {
+			continue
 		}
+		tfModels = append(tfModels, TFLabelsModel{Key: types.StringValue(key), Value: types.StringValue(value)})
 	}
 	setType, diagsLocal := types.SetValueFrom(ctx, LabelsObjType, tfModels)
 	diags.Append(diagsLocal...)

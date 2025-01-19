@@ -72,6 +72,10 @@ func newComponentLabel(ctx context.Context, input types.Set, diags *diag.Diagnos
 	resp := make([]admin.ComponentLabel, len(input.Elements()))
 	for i := range elements {
 		item := &elements[i]
+		if item.Key.ValueString() == IgnoreLabelKey {
+			diags.AddError(ErrIgnoreLabel.Error(), ErrIgnoreLabel.Error())
+			return nil
+		}
 		resp[i] = admin.ComponentLabel{
 			Key:   item.Key.ValueStringPointer(),
 			Value: item.Value.ValueStringPointer(),

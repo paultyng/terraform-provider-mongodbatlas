@@ -635,6 +635,25 @@ func TestAccClusterAdvancedCluster_withLabels(t *testing.T) {
 	})
 }
 
+func TestAccClusterAdvancedCluster_withLabelIgnored(t *testing.T) {
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName()
+		clusterName = acc.RandomClusterName()
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config:      configWithKeyValueBlocks(t, true, orgID, projectName, clusterName, "labels", acc.ClusterLabelsMapIgnored),
+				ExpectError: regexp.MustCompile(advancedclustertpf.ErrIgnoreLabel.Error()),
+			},
+		},
+	})
+}
+
 func TestAccClusterAdvancedClusterConfig_selfManagedSharding(t *testing.T) {
 	var (
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 6)

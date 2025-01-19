@@ -13,6 +13,14 @@ import (
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
+const (
+	IgnoreLabelKey = "Infrastructure Tool"
+)
+
+var (
+	ErrIgnoreLabel = fmt.Errorf("you should not set `%s` label, it is used for internal purposes", IgnoreLabelKey)
+)
+
 func FormatMongoDBMajorVersion(version string) string {
 	if strings.Contains(version, ".") {
 		return version

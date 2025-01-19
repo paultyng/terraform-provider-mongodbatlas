@@ -37,7 +37,7 @@ const (
 	ErrorSnapshotBackupPolicyRead = "error getting a Cloud Provider Snapshot Backup Policy for the cluster(%s): %s"
 )
 
-var defaultLabel = matlas.Label{Key: "Infrastructure Tool", Value: "MongoDB Atlas Terraform Provider"}
+var defaultLabel = matlas.Label{Key: advancedclustertpf.IgnoreLabelKey, Value: "MongoDB Atlas Terraform Provider"}
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
@@ -521,7 +521,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if containsLabelOrKey(expandLabelSliceFromSetSchema(d), defaultLabel) {
-		return diag.FromErr(fmt.Errorf("you should not set `Infrastructure Tool` label, it is used for internal purposes"))
+		return diag.FromErr(advancedclustertpf.ErrIgnoreLabel)
 	}
 
 	clusterRequest.Labels = append(expandLabelSliceFromSetSchema(d), defaultLabel)
@@ -962,7 +962,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	if d.HasChange("labels") {
 		if containsLabelOrKey(expandLabelSliceFromSetSchema(d), defaultLabel) {
-			return diag.FromErr(fmt.Errorf("you should not set `Infrastructure Tool` label, it is used for internal purposes"))
+			return diag.FromErr(advancedclustertpf.ErrIgnoreLabel)
 		}
 
 		cluster.Labels = append(expandLabelSliceFromSetSchema(d), defaultLabel)
