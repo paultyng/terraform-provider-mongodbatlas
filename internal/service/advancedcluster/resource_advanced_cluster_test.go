@@ -3,6 +3,7 @@ package advancedcluster_test
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"regexp"
@@ -319,7 +320,6 @@ func TestAccClusterAdvancedCluster_pausedToUnpaused(t *testing.T) {
 }
 
 func TestAccClusterAdvancedCluster_advancedConfig_oldMongoDBVersion(t *testing.T) {
-	acc.SkipIfAdvancedClusterV2Schema(t) // TODO: default_max_time_ms not implemented in TPF yet
 	var (
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 4)
 
@@ -335,10 +335,6 @@ func TestAccClusterAdvancedCluster_advancedConfig_oldMongoDBVersion(t *testing.T
 			SampleSizeBIConnector:            conversion.Pointer(110),
 			TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](300),
 		}
-		processArgs = &admin.ClusterDescriptionProcessArgs20240805{
-			ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: conversion.IntPtr(-1), // this will not be set in the TF configuration
-			DefaultMaxTimeMS: conversion.IntPtr(65),
-		}
 
 		processArgsCipherConfig = &admin.ClusterDescriptionProcessArgs20240805{
 			TlsCipherConfigMode:            conversion.StringPtr("CUSTOM"),
@@ -352,10 +348,6 @@ func TestAccClusterAdvancedCluster_advancedConfig_oldMongoDBVersion(t *testing.T
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config:      configAdvanced(t, true, projectID, clusterName, "6.0", processArgs20240530, processArgs),
-				ExpectError: regexp.MustCompile(advancedcluster.ErrorDefaultMaxTimeMinVersion),
-			},
-			{
 				Config: configAdvanced(t, true, projectID, clusterName, "6.0", processArgs20240530, processArgsCipherConfig),
 				Check:  checkAdvanced(true, clusterName, "TLS1_2", processArgsCipherConfig),
 			},
@@ -364,7 +356,6 @@ func TestAccClusterAdvancedCluster_advancedConfig_oldMongoDBVersion(t *testing.T
 }
 
 func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
-	acc.SkipIfAdvancedClusterV2Schema(t) // TODO: default_max_time_ms not implemented in TPF yet
 	var (
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 4)
 		clusterNameUpdated     = acc.RandomClusterName()
@@ -432,7 +423,6 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 }
 
 func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
-	acc.SkipIfAdvancedClusterV2Schema(t) // TODO: tls_cipher_config_mode not implemented in TPF yet
 	var (
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 4)
 		clusterNameUpdated     = acc.RandomClusterName()
@@ -1792,7 +1782,7 @@ func configAdvanced(t *testing.T, isAcc bool, projectID, clusterName, mongoDBMaj
 		mongoDBMajorVersionStr = fmt.Sprintf(`mongo_db_major_version = %[1]q`, mongoDBMajorVersion)
 	}
 
-	return acc.ConvertAdvancedClusterToSchemaV2(t, isAcc, fmt.Sprintf(`
+	conf := acc.ConvertAdvancedClusterToSchemaV2(t, isAcc, fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id             = %[1]q
 			name                   = %[2]q
@@ -1834,6 +1824,11 @@ func configAdvanced(t *testing.T, isAcc bool, projectID, clusterName, mongoDBMaj
 		p20240530.GetFailIndexKeyTooLong(), p20240530.GetJavascriptEnabled(), p20240530.GetMinimumEnabledTlsProtocol(), p20240530.GetNoTableScan(),
 		p20240530.GetOplogSizeMB(), p20240530.GetSampleSizeBIConnector(), p20240530.GetSampleRefreshIntervalBIConnector(), p20240530.GetTransactionLifetimeLimitSeconds(),
 		changeStreamOptionsStr, defaultMaxTimeStr, mongoDBMajorVersionStr, tlsCipherConfigModeStr, customOpensslCipherConfigTLS12Str)) + dataSourcesTFNewSchema
+
+	log.Println("TF config is...............")
+
+	log.Println(conf)
+	return conf
 }
 
 func checkAdvanced(isAcc bool, name, tls string, processArgs *admin.ClusterDescriptionProcessArgs20240805) resource.TestCheckFunc {

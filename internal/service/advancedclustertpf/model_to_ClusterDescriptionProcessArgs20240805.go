@@ -3,11 +3,13 @@ package advancedclustertpf
 import (
 	"context"
 
+	"go.mongodb.org/atlas-sdk/v20241113004/admin"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
 func NewAtlasReqAdvancedConfiguration(ctx context.Context, objInput *types.Object, diags *diag.Diagnostics) *admin.ClusterDescriptionProcessArgs20240805 {
@@ -31,5 +33,8 @@ func NewAtlasReqAdvancedConfiguration(ctx context.Context, objInput *types.Objec
 		SampleRefreshIntervalBIConnector: conversion.NilForUnknown(input.SampleRefreshIntervalBiconnector, conversion.Int64PtrToIntPtr(input.SampleRefreshIntervalBiconnector.ValueInt64Pointer())),
 		SampleSizeBIConnector:            conversion.NilForUnknown(input.SampleSizeBiconnector, conversion.Int64PtrToIntPtr(input.SampleSizeBiconnector.ValueInt64Pointer())),
 		TransactionLifetimeLimitSeconds:  conversion.NilForUnknown(input.TransactionLifetimeLimitSeconds, input.TransactionLifetimeLimitSeconds.ValueInt64Pointer()),
+		DefaultMaxTimeMS:                 conversion.NilForUnknown(input.DefaultMaxTimeMS, conversion.Int64PtrToIntPtr(input.DefaultMaxTimeMS.ValueInt64Pointer())),
+		TlsCipherConfigMode:              conversion.NilForUnknown(input.TlsCipherConfigMode, input.TlsCipherConfigMode.ValueStringPointer()),
+		CustomOpensslCipherConfigTls12:   conversion.Pointer(conversion.TypesSetToString(ctx, input.CustomOpensslCipherConfigTls12)),
 	}
 }

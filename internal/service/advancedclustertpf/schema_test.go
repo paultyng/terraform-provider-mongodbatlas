@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -44,6 +45,10 @@ func TestAdvancedCluster_PlanModifierErrors(t *testing.T) {
 			{
 				Config:      configBasic(projectID, clusterName, "advanced_configuration = { change_stream_options_pre_and_post_images_expire_after_seconds = 100 }\nmongo_db_major_version=\"6\""),
 				ExpectError: regexp.MustCompile("`advanced_configuration.change_stream_options_pre_and_post_images_expire_after_seconds` can only be configured if the mongo_db_major_version is 7.0 or higher"),
+			},
+			{
+				Config:      configBasic(projectID, clusterName, "advanced_configuration = { default_max_time_ms = 100 }\nmongo_db_major_version=\"6\""),
+				ExpectError: regexp.MustCompile("`advanced_configuration.default_max_time_ms` can only be configured if the mongo_db_major_version is 8.0 or higher"),
 			},
 			{
 				Config:      configBasic(projectID, clusterName, "advanced_configuration = { fail_index_key_too_long = true }"),

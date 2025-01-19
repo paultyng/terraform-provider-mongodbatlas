@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 )
@@ -528,6 +529,23 @@ func AdvancedConfigurationSchema(ctx context.Context) schema.SingleNestedAttribu
 				Optional:            true,
 				MarkdownDescription: "fail_index_key_too_long", // TODO: add description
 			},
+			"default_max_time_ms": schema.Int64Attribute{
+				Optional:            true,
+				MarkdownDescription: "Default time limit in milliseconds for individual read operations to complete. This parameter is supported only for MongoDB version 8.0 and above.",
+				PlanModifiers: []planmodifier.Int64{
+					PlanMustUseMongoDBVersion(8.0, EqualOrHigher),
+				},
+			},
+			"custom_openssl_cipher_config_tls12": schema.SetAttribute{
+				Optional:            true,
+				ElementType:         types.StringType,
+				MarkdownDescription: "The custom OpenSSL cipher suite list for TLS 1.2. This field is only valid when `tls_cipher_config_mode` is set to `CUSTOM`.",
+			},
+			"tls_cipher_config_mode": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "The TLS cipher suite configuration mode. Valid values include `CUSTOM` or `DEFAULT`. The `DEFAULT` mode uses the default cipher suites. The `CUSTOM` mode allows you to specify custom cipher suites for both TLS 1.2 and TLS 1.3. To unset, this should be set back to `DEFAULT`.",
+			},
 		},
 	}
 }
@@ -759,14 +777,17 @@ var TagsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 
 type TFAdvancedConfigurationModel struct {
 	OplogMinRetentionHours                                types.Float64 `tfsdk:"oplog_min_retention_hours"`
+	CustomOpensslCipherConfigTls12                        types.Set     `tfsdk:"custom_openssl_cipher_config_tls12"`
 	MinimumEnabledTlsProtocol                             types.String  `tfsdk:"minimum_enabled_tls_protocol"`
 	DefaultWriteConcern                                   types.String  `tfsdk:"default_write_concern"`
 	DefaultReadConcern                                    types.String  `tfsdk:"default_read_concern"`
-	ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds types.Int64   `tfsdk:"change_stream_options_pre_and_post_images_expire_after_seconds"`
-	OplogSizeMb                                           types.Int64   `tfsdk:"oplog_size_mb"`
+	TlsCipherConfigMode                                   types.String  `tfsdk:"tls_cipher_config_mode"`
 	SampleRefreshIntervalBiconnector                      types.Int64   `tfsdk:"sample_refresh_interval_bi_connector"`
 	SampleSizeBiconnector                                 types.Int64   `tfsdk:"sample_size_bi_connector"`
 	TransactionLifetimeLimitSeconds                       types.Int64   `tfsdk:"transaction_lifetime_limit_seconds"`
+	DefaultMaxTimeMS                                      types.Int64   `tfsdk:"default_max_time_ms"`
+	OplogSizeMb                                           types.Int64   `tfsdk:"oplog_size_mb"`
+	ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds types.Int64   `tfsdk:"change_stream_options_pre_and_post_images_expire_after_seconds"`
 	JavascriptEnabled                                     types.Bool    `tfsdk:"javascript_enabled"`
 	NoTableScan                                           types.Bool    `tfsdk:"no_table_scan"`
 	FailIndexKeyTooLong                                   types.Bool    `tfsdk:"fail_index_key_too_long"`
@@ -785,6 +806,9 @@ var AdvancedConfigurationObjType = types.ObjectType{AttrTypes: map[string]attr.T
 	"sample_refresh_interval_bi_connector": types.Int64Type,
 	"sample_size_bi_connector":             types.Int64Type,
 	"transaction_lifetime_limit_seconds":   types.Int64Type,
+	"default_max_time_ms":                  types.Int64Type,
+	"tls_cipher_config_mode":               types.StringType,
+	"custom_openssl_cipher_config_tls12":   types.SetType{ElemType: types.StringType},
 }}
 
 type TFPinnedFCVModel struct {

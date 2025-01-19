@@ -6,18 +6,20 @@ import (
 	"reflect"
 	"time"
 
+	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
+	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
+	"go.mongodb.org/atlas-sdk/v20241113004/admin"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/update"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
-	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
 var _ resource.ResourceWithConfigure = &rs{}
@@ -347,6 +349,7 @@ func (r *rs) applyPinnedFCVChanges(ctx context.Context, diags *diag.Diagnostics,
 	return nil
 }
 
+// create - empty state
 func (r *rs) applyAdvancedConfigurationChanges(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) (legacy *admin20240530.ClusterDescriptionProcessArgs, latest *admin.ClusterDescriptionProcessArgs20240805, changed bool) {
 	var (
 		api             = r.Client.AtlasV2.ClustersApi
@@ -356,12 +359,12 @@ func (r *rs) applyAdvancedConfigurationChanges(ctx context.Context, diags *diag.
 		advConfig       *admin.ClusterDescriptionProcessArgs20240805
 		legacyAdvConfig *admin20240530.ClusterDescriptionProcessArgs
 	)
-	patchReqProcessArgs := update.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfiguration)
-	if !update.IsZeroValues(patchReqProcessArgs) {
+	patchReqProcessArgsLegacy := update.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfigurationLegacy)
+	if !update.IsZeroValues(patchReqProcessArgsLegacy) {
 		changed = true
-		advConfig, _, err = api.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, patchReqProcessArgs).Execute()
+		legacyAdvConfig, _, err = r.Client.AtlasV220240530.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, patchReqProcessArgsLegacy).Execute()
 		if err != nil {
-			diags.AddError(errorAdvancedConfUpdate, defaultAPIErrorDetails(clusterName, err))
+			diags.AddError(errorAdvancedConfUpdateLegacy, defaultAPIErrorDetails(clusterName, err))
 			return nil, nil, false
 		}
 		_ = AwaitChanges(ctx, r.Client.AtlasV2.ClustersApi, &plan.Timeouts, diags, projectID, clusterName, changeReasonUpdate)
@@ -369,12 +372,12 @@ func (r *rs) applyAdvancedConfigurationChanges(ctx context.Context, diags *diag.
 			return nil, nil, false
 		}
 	}
-	patchReqProcessArgsLegacy := update.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfigurationLegacy)
-	if !update.IsZeroValues(patchReqProcessArgsLegacy) {
+	patchReqProcessArgs := update.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfiguration)
+	if !update.IsZeroValues(patchReqProcessArgs) {
 		changed = true
-		legacyAdvConfig, _, err = r.Client.AtlasV220240530.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, patchReqProcessArgsLegacy).Execute()
+		advConfig, _, err = api.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, patchReqProcessArgs).Execute()
 		if err != nil {
-			diags.AddError(errorAdvancedConfUpdateLegacy, defaultAPIErrorDetails(clusterName, err))
+			diags.AddError(errorAdvancedConfUpdate, defaultAPIErrorDetails(clusterName, err))
 			return nil, nil, false
 		}
 		_ = AwaitChanges(ctx, r.Client.AtlasV2.ClustersApi, &plan.Timeouts, diags, projectID, clusterName, changeReasonUpdate)
