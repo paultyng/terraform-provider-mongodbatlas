@@ -1190,7 +1190,7 @@ func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
 				Config: configBasicReplicaset(t, projectID, clusterName, fullUpdate),
 				Check:  checksUpdate,
 			},
-			acc.TestStepImportCluster(resourceName, importIgnoredFields()...),
+			acc.TestStepImportCluster(resourceName),
 		},
 	})
 }
@@ -1233,7 +1233,7 @@ func TestAccMockableAdvancedCluster_shardedAddAnalyticsAndAutoScaling(t *testing
 				Config: configSharded(t, projectID, clusterName, true),
 				Check:  checksUpdated,
 			},
-			acc.TestStepImportCluster(resourceName, importIgnoredFields()...),
+			acc.TestStepImportCluster(resourceName),
 		},
 	})
 }
@@ -2780,15 +2780,4 @@ func configFCVPinning(t *testing.T, orgID, projectName, clusterName string, pinn
 		}
 
 	`, orgID, projectName, clusterName, mongoDBMajorVersion, pinnedFCVAttr)) + dataSourcesTFNewSchema
-}
-
-func importIgnoredFields() []string {
-	if config.AdvancedClusterV2Schema() {
-		return []string{}
-	}
-	return []string{
-		"replication_specs.0.region_configs.0.read_only_specs",
-		"replication_specs.0.region_configs.0.analytics_specs",
-		"replication_specs.0.region_configs.0.electable_specs.0.ebs_volume_type",
-	}
 }

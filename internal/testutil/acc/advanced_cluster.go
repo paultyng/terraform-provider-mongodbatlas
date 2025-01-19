@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
@@ -42,14 +43,30 @@ var (
 	}
 )
 
-func TestStepImportCluster(resourceName string, ignoredFields ...string) resource.TestStep {
+func TestStepImportCluster(resourceName string, ignorePrefixFields ...string) resource.TestStep {
+	ignorePrefixFields = append(ignorePrefixFields,
+		"retain_backups_enabled", // This field is TF specific and not returned by Atlas, so Import can't fill it in.
+	)
+
+	// analytics|electable|read_only are only set in state in SDKv2 if present in the definition.
+	// However, as import doesn't have a previous state to compare with, import will always fill them.
+	// This will make these fields differ in the state, although the plan change won't be shown to the user as they're computed values.
+	if !config.AdvancedClusterV2Schema() {
+		for i := range 2 { // tests have at most 2 replication_configs
+			ignorePrefixFields = append(ignorePrefixFields,
+				fmt.Sprintf("replication_specs.%d.region_configs.0.analytics_specs", i),
+				fmt.Sprintf("replication_specs.%d.region_configs.0.electable_specs", i),
+				fmt.Sprintf("replication_specs.%d.region_configs.0.read_only_specs", i),
+			)
+		}
+	}
 	return resource.TestStep{
 		ResourceName:                         resourceName,
 		ImportStateIdFunc:                    ImportStateIDFuncProjectIDClusterName(resourceName, "project_id", "name"),
 		ImportState:                          true,
 		ImportStateVerify:                    true,
 		ImportStateVerifyIdentifierAttribute: "name",
-		ImportStateVerifyIgnore:              ignoredFields,
+		ImportStateVerifyIgnore:              ignorePrefixFields,
 	}
 }
 
